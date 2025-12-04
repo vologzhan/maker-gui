@@ -1,9 +1,10 @@
 package repositories
 
 import (
-	"github.com/uptrace/bun"
 	"▶service-name◀-service/shared/postgres"
 ⏩	▶entityName◀ "▶service-name◀-service/shared/postgres/repositories/▶entity-name◀"⏪
+
+	"github.com/uptrace/bun"
 )
 
 type Repositories struct {
