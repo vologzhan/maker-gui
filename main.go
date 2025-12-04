@@ -15,7 +15,7 @@ import (
 //go:embed frontend/dist/*
 var frontendFs embed.FS
 
-//go:embed templates/*
+//go:embed all:templates/*
 var templateFs embed.FS
 
 func main() {
@@ -62,7 +62,7 @@ func newFrontend(server *echo.Echo) {
 }
 
 func newMaker(srcDir string) (*maker.Node, error) {
-	tpl, err := template.New(templateFs, "templates/current")
+	tpl, err := template.New(templateFs, "templates/go")
 	if err != nil {
 		return nil, err
 	}

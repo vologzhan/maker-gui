@@ -1,11 +1,10 @@
 FRONTEND_DIR=frontend
-BUILD_BACKEND=go build -o maker_app
 
 build:
-	${BUILD_BACKEND}
+	go build -o maker_app
 
-build-dev:
-	${BUILD_BACKEND} -tags dev
+run-dev:
+	go run -tags dev .
 
 build-front:
 	cd $(FRONTEND_DIR) && npm run build

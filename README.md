@@ -1,14 +1,12 @@
 # Build and run
 
-## 1. Use exists, add new or replace template(-s) in directory [templates](./templates)
+## 1. Customize template(s) [templates](./templates)
 
 Read about the template syntax [here](https://github.com/vologzhan/maker)
 
-See examples [go](./templates/go) and [maker](./templates/maker) templates
+Use the existing [go](./templates/go) template or replace it with a new
 
-**Note:** `.dotfiles` must be specified in `go:embed` in [main.go](./main.go)
-
-## 2. Build binary `maker_app`
+## 2. Build `maker_app` binary
 
 ```sh
 make build
@@ -16,7 +14,7 @@ make build
 
 ## 3. Move `maker_app` to dir with your projects
 
-Projects are searched in the executable path
+Projects are searched in executable path (in directory with file `maker_app`)
 
 ## 4. Run and use
 
@@ -26,14 +24,14 @@ Run binary
 ./maker_app
 ```
 
-Open browser http://localhost:1551
+Open in browser http://localhost:1551
 
-# Build dev
+# Run dev
 
-Clone this repository to dir with your projects
+Clone this repository to directory with your projects and run:
 
 ```sh
-make build-dev
+make run-dev
 ```
 
 Projects will be searched in path `../`
