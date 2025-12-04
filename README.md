@@ -3,10 +3,9 @@
 ## 1. Customize template(s)
 
 Use the existing [go template](./templates/go), or use it as an example and replace it with your own template.
-
 Read about the [template syntax](https://github.com/vologzhan/maker).
 
-## 2. Build the `maker_app` binary
+## 2. Build binary file `maker_app`
 
 ```sh
 make build
