@@ -2,9 +2,9 @@
 
 ## 1. Customize [template(s)](./templates)
 
-Read about the template syntax [here](https://github.com/vologzhan/maker)
+Use the existing [go](./templates/go) template or use it as an example and replace it with your own template
 
-Use the existing [go](./templates/go) template or replace it with a new
+Read about the [template syntax](https://github.com/vologzhan/maker)
 
 ## 2. Build `maker_app` binary
 
@@ -28,10 +28,10 @@ Open in browser http://localhost:1551
 
 # Run dev
 
+Projects will be searched in path `../`
+
 Clone this repository to directory with your projects and run:
 
 ```sh
 make run-dev
 ```
-
-Projects will be searched in path `../`
