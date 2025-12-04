@@ -46,8 +46,7 @@ async function createService() {
     <div>
       <input placeholder="service-name" v-model="newServiceName"/>
       <button @click="createService()">
-        <i class="fa-solid fa-plus"></i>
-        Add
+        <i class="fa-solid fa-plus"></i> Service
       </button>
     </div>
   </aside>

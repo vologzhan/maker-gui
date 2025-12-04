@@ -156,7 +156,7 @@ function changePrimaryKey(entityId: string, attribute: Attribute) {
       />
 
       <button @click="deleteEntity(entity)">
-        <i class="fa-solid fa-ban"></i> Delete table
+        <i class="fa-solid fa-ban"></i> Table
       </button>
 
       <div class="attribute-container" v-for="attribute in entity.attributes" :key="attribute.id">
