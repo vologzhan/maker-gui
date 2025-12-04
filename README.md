@@ -2,29 +2,28 @@
 
 ## 1. Customize template(s)
 
-Use the existing [go template](./templates/go) or use it as an example and replace it with your own template
+Use the existing [go template](./templates/go), or use it as an example and replace it with your own template.
 
-Read about the [template syntax](https://github.com/vologzhan/maker)
+Read about the [template syntax](https://github.com/vologzhan/maker).
 
-## 2. Build `maker_app` binary
+## 2. Build the `maker_app` binary
 
 ```sh
 make build
 ```
 
-## 3. Move `maker_app` to dir with your projects
+## 3. Move `maker_app` to the directory with your projects
 
-Projects are searched in executable path (in directory with file `maker_app`)
+Projects are searched in the executable path (in the directory containing the `maker_app` file).
 
 ## 4. Run and use
 
-Run binary
-
+Run the binary:
 ```sh
 ./maker_app
 ```
 
-Open in browser http://localhost:1551
+Open in a browser: http://localhost:1551
 
 # Run dev
 
