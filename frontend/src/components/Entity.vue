@@ -145,8 +145,7 @@ function changePrimaryKey(entityId: string, attribute: Attribute) {
     <h2 v-else>Service: {{ props.service.name }}</h2>
 
     <button v-show="props.service.id" class="fixed-button" @click="addEntity()">
-      <i class="fa-solid fa-plus"></i>
-      Table
+      <i class="fa-solid fa-plus"></i> Table
     </button>
 
     <div class="entity-container" v-for="entity in entities" :key="entity.id">
@@ -157,14 +156,18 @@ function changePrimaryKey(entityId: string, attribute: Attribute) {
       />
 
       <button @click="deleteEntity(entity)">
-        <i class="fa-solid fa-ban"></i>
-        Delete table
+        <i class="fa-solid fa-ban"></i> Delete table
       </button>
 
       <div class="attribute-container" v-for="attribute in entity.attributes" :key="attribute.id">
+        <input type="checkbox" hidden v-model="attribute.primary_key"/>
         <label class="sticky pk-label" v-show="attribute.primary_key">PK:</label>
 
-        <input type="text" class="sticky" placeholder="column_name"
+        <button class="sticky" v-show="!attribute.primary_key" @click="deleteAttribute(entity, attribute)">
+          <i class="fa-solid fa-ban"></i>
+        </button>
+
+        <input type="text" placeholder="column_name"
                :disabled="attribute.primary_key"
                v-model="attribute.name_db"
                @change="saveAttribute(entity.id, attribute)"
@@ -217,43 +220,29 @@ function changePrimaryKey(entityId: string, attribute: Attribute) {
                v-model="attribute.fk_column"
                @change="saveAttribute(entity.id, attribute)"
         />
-
-        <input type="checkbox" class="attribute-primary-key"
-               v-model="attribute.primary_key"
-               @change="saveAttribute(entity.id, attribute)"
-        />
-
-        <button v-show="!attribute.primary_key" @click="deleteAttribute(entity, attribute)">
-          <i class="fa-solid fa-ban"></i>
-          Delete
-        </button>
       </div>
 
       <div>
         <button class="sticky" @click="addAttribute(entity)">
-          <i class="fa-solid fa-plus"></i>
-          Column
+          <i class="fa-solid fa-plus"></i> Column
         </button>
         <button
             :disabled="hasAttribute(entity, 'created_at')"
             @click="addAttribute(entity, {name_db: 'created_at', type_db: 'timestamp(0)', default: 'now()'})"
         >
-          <i class="fa-solid fa-plus"></i>
-          created_at
+          <i class="fa-solid fa-plus"></i> created_at
         </button>
         <button
             :disabled="hasAttribute(entity, 'updated_at')"
             @click="addAttribute(entity, {name_db: 'updated_at', type_db: 'timestamp(0)', default: 'null', nullable: true})"
         >
-          <i class="fa-solid fa-plus"></i>
-          updated_at
+          <i class="fa-solid fa-plus"></i> updated_at
         </button>
         <button
             :disabled="hasAttribute(entity, 'deleted_at')"
             @click="addAttribute(entity, {name_db: 'deleted_at', type_db: 'timestamp(0)', default: 'null', nullable: true})"
         >
-          <i class="fa-solid fa-plus"></i>
-          deleted_at
+          <i class="fa-solid fa-plus"></i> deleted_at
         </button>
       </div>
     </div>
@@ -291,10 +280,6 @@ main {
   position: fixed;
   top: 2rem; /* Отступ от верхнего края */
   right: 2rem; /* Отступ от правого края */
-}
-
-.attribute-primary-key {
-  display: none;
 }
 
 .pk-label {
