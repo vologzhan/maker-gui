@@ -3,7 +3,7 @@
 ## 1. Customize template(s)
 
 Use the existing [go template](./templates/go), or use it as an example and replace it with your own template.
-Read about the [template syntax](https://github.com/vologzhan/maker).
+Read about the [template syntax](https://github.com/vologzhan/maker)
 
 ## 2. Build `maker_app` binary file
 
@@ -13,7 +13,7 @@ make build
 
 ## 3. Move `maker_app` to the directory with your projects
 
-Projects are searched in the executable path (in the directory containing the `maker_app` file).
+Projects are searched in the executable path (in the directory containing the `maker_app` file)
 
 ## 4. Run and use
 
