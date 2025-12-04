@@ -1,8 +1,8 @@
 # Build and run
 
-## 1. Customize [template(s)](./templates)
+## 1. Customize template(s)
 
-Use the existing [go](./templates/go) template or use it as an example and replace it with your own template
+Use the existing [go template](./templates/go) or use it as an example and replace it with your own template
 
 Read about the [template syntax](https://github.com/vologzhan/maker)
 
