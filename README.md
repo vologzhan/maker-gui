@@ -1,6 +1,6 @@
 # Build and run
 
-## 1. Customize template(s) [templates](./templates)
+## 1. Customize [template(s)](./templates)
 
 Read about the template syntax [here](https://github.com/vologzhan/maker)
 
