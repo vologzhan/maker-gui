@@ -1,0 +1,54 @@
+package entity
+
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/request"
+	"github.com/vologzhan/maker-gui/backend/response"
+	"net/http"
+)
+
+type List struct {
+	repository *repository.Repository
+}
+
+func (c *List) Handle(ctx echo.Context) error {
+	var req request.EntityList
+	if err := ctx.Bind(&req); err != nil {
+		return err
+	}
+
+	res, err := c.handle(req)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, res)
+}
+
+func (c *List) handle(req request.EntityList) (*response.EntityList, error) {
+	service, err := c.repository.Service(req.ServiceId)
+	if err != nil {
+		return nil, err
+	}
+
+	entities, err := service.Entities()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range entities {
+		c.repository.CreateEntity(e)
+
+		attrs, err := e.Attributes()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, a := range attrs {
+			c.repository.CreateAttribute(a)
+		}
+	}
+
+	return response.NewEntityList(entities), nil
+}

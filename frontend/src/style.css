@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.flex-container {
+  display: flex;
+}
+
+.clickable:hover {
+  cursor: pointer;
+  color: dodgerblue;
+}
+
+.fa-ban {
+  color: red;
+}
+
+.fa-plus {
+  color: green;
+}
