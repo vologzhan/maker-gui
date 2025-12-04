@@ -1,21 +1,39 @@
-# Сборка и запуск
+# Build and run
 
-## Клонирование репозитория
+## 1. Use exists, add new or replace template(-s) in directory [templates](./templates)
+
+Read about the template syntax [here](https://github.com/vologzhan/maker)
+
+See examples [go](./templates/go) and [maker](./templates/maker) templates
+
+**Note:** `.dotfiles` must be specified in `go:embed` in [main.go](./main.go)
+
+## 2. Build binary `maker_app`
+
 ```sh
-git clone git@github.com:vologzhan/maker-gui.git
-```
-или
-```sh
-git clone https://github.com/vologzhan/maker-gui.git
+make build
 ```
 
-## Создание бинарного файла
-```sh
-go build -tags prod
-```
-В текущей директории будет создан бинарный файл `maker`. Утилита работает относительно расположения бинарного файла, поэтому бинарник необходимо переместить в директорию с проектами
+## 3. Move `maker_app` to dir with your projects
 
-## Запуск утилиты
+Projects are searched in the executable path
+
+## 4. Run and use
+
+Run binary
+
 ```sh
-./maker
+./maker_app
 ```
+
+Open browser http://localhost:1551
+
+# Build dev
+
+Clone this repository to dir with your projects
+
+```sh
+make build-dev
+```
+
+Projects will be searched in path `../`
