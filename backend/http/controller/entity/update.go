@@ -1,19 +1,19 @@
-package attribute
+package entity
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/vologzhan/maker-gui/backend/http/request"
+	"github.com/vologzhan/maker-gui/backend/http/response"
 	"github.com/vologzhan/maker-gui/backend/repository"
-	"github.com/vologzhan/maker-gui/backend/request"
-	"github.com/vologzhan/maker-gui/backend/response"
 	"net/http"
 )
 
-type Delete struct {
+type Update struct {
 	repository *repository.Repository
 }
 
-func (c *Delete) Handle(ctx echo.Context) error {
-	var req request.AttributeDelete
+func (c *Update) Handle(ctx echo.Context) error {
+	var req request.EntityUpdate
 	if err := ctx.Bind(&req); err != nil {
 		return err
 	}
@@ -26,20 +26,18 @@ func (c *Delete) Handle(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.NewSuccess())
 }
 
-func (c *Delete) handle(req request.AttributeDelete) error {
-	attr, err := c.repository.Attribute(req.Id)
+func (c *Update) handle(req request.EntityUpdate) error {
+	entity, err := c.repository.Entity(req.Id)
 	if err != nil {
 		return err
 	}
 
-	err = attr.Delete()
+	err = entity.Update(req.NameDb)
 	if err != nil {
 		return err
 	}
 
-	c.repository.DeleteAttribute(attr)
-
-	service := attr.Entity().Service()
+	service := entity.Service()
 
 	// todo sql
 

@@ -2,18 +2,18 @@ package entity
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/vologzhan/maker-gui/backend/http/request"
+	"github.com/vologzhan/maker-gui/backend/http/response"
 	"github.com/vologzhan/maker-gui/backend/repository"
-	"github.com/vologzhan/maker-gui/backend/request"
-	"github.com/vologzhan/maker-gui/backend/response"
 	"net/http"
 )
 
-type Update struct {
+type Delete struct {
 	repository *repository.Repository
 }
 
-func (c *Update) Handle(ctx echo.Context) error {
-	var req request.EntityUpdate
+func (c *Delete) Handle(ctx echo.Context) error {
+	var req request.EntityDelete
 	if err := ctx.Bind(&req); err != nil {
 		return err
 	}
@@ -26,16 +26,18 @@ func (c *Update) Handle(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response.NewSuccess())
 }
 
-func (c *Update) handle(req request.EntityUpdate) error {
+func (c *Delete) handle(req request.EntityDelete) error {
 	entity, err := c.repository.Entity(req.Id)
 	if err != nil {
 		return err
 	}
 
-	err = entity.Update(req.NameDb)
+	err = entity.Delete()
 	if err != nil {
 		return err
 	}
+
+	c.repository.DeleteEntity(entity)
 
 	service := entity.Service()
 

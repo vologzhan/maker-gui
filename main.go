@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/vologzhan/maker"
-	"github.com/vologzhan/maker-gui/backend/controller"
+	"github.com/vologzhan/maker-gui/backend/http/controller"
 	"github.com/vologzhan/maker/template"
 	"log"
 	"net/http"

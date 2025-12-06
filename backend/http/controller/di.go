@@ -3,9 +3,9 @@ package controller
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/vologzhan/maker"
-	"github.com/vologzhan/maker-gui/backend/controller/attribute"
-	"github.com/vologzhan/maker-gui/backend/controller/entity"
-	"github.com/vologzhan/maker-gui/backend/controller/service"
+	"github.com/vologzhan/maker-gui/backend/http/controller/attribute"
+	"github.com/vologzhan/maker-gui/backend/http/controller/entity"
+	"github.com/vologzhan/maker-gui/backend/http/controller/service"
 	"github.com/vologzhan/maker-gui/backend/repository"
 )
 
