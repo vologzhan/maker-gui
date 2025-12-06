@@ -9,7 +9,7 @@ type AttributeCreate struct {
 	TypeDb     string    `json:"type_db"`
 	Default    string    `json:"default"`
 	FkTable    string    `json:"fk_table"`
-	FkColumn   string    `json:"fk_column"`
+	FkType     string    `json:"fk_type"`
 	Nullable   bool      `json:"nullable"`
 	PrimaryKey bool      `json:"primary_key"`
 }
@@ -24,7 +24,7 @@ type AttributeUpdate struct {
 	TypeDb     string    `json:"type_db"`
 	Default    string    `json:"default"`
 	FkTable    string    `json:"fk_table"`
-	FkColumn   string    `json:"fk_column"`
+	FkType     string    `json:"fk_type"`
 	Nullable   bool      `json:"nullable"`
 	PrimaryKey bool      `json:"primary_key"`
 }

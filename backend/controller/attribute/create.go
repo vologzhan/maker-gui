@@ -33,7 +33,7 @@ func (c *Create) handle(req request.AttributeCreate) error {
 		return err
 	}
 
-	attr, err := entity.NewAttribute(e, req.Id, req.NameDb, req.TypeDb, req.Default, req.FkTable, req.FkColumn, req.Nullable, req.PrimaryKey)
+	attr, err := entity.NewAttribute(e, req.Id, req.NameDb, req.TypeDb, req.Default, req.FkTable, req.FkType, req.Nullable, req.PrimaryKey)
 	if err != nil {
 		return err
 	}

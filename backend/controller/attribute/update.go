@@ -32,7 +32,7 @@ func (c *Update) handle(req request.AttributeUpdate) error {
 		return err
 	}
 
-	err = attr.Update(req.NameDb, req.TypeDb, req.Default, req.FkTable, req.FkColumn, req.Nullable, req.PrimaryKey)
+	err = attr.Update(req.NameDb, req.TypeDb, req.Default, req.FkTable, req.FkType, req.Nullable, req.PrimaryKey)
 	if err != nil {
 		return err
 	}

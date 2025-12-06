@@ -12,7 +12,7 @@ const (
 	attrTypeDb   = "type_db"
 	attrDefault  = "default"
 	attrFkTable  = "fk_table"
-	attrFkColumn = "fk_column"
+	attrFkType   = "fk_type"
 	attrNullable = "nullable"
 	attrPk       = "primary_key"
 )
@@ -27,7 +27,7 @@ func (a *Attribute) NameDb() string   { return a.node.ValueString(attrNameDb) }
 func (a *Attribute) TypeDb() string   { return a.node.ValueString(attrTypeDb) }
 func (a *Attribute) Default() string  { return a.node.ValueString(attrDefault) }
 func (a *Attribute) FkTable() string  { return a.node.ValueString(attrFkTable) }
-func (a *Attribute) FkColumn() string { return a.node.ValueString(attrFkColumn) }
+func (a *Attribute) FkType() string   { return a.node.ValueString(attrFkType) }
 func (a *Attribute) Nullable() bool   { return a.node.ValueBool(attrNullable) }
 func (a *Attribute) PrimaryKey() bool { return a.node.ValueBool(attrPk) }
 func (a *Attribute) Entity() *Entity  { return a.entity }
@@ -43,12 +43,12 @@ func (a *Attribute) Delete() error {
 	return nil
 }
 
-func (a *Attribute) Update(nameDb, typeDb, def, fkTable, fkColumn string, nullable, pk bool) error {
-	return a.node.SetValues(newAttributeValues(nameDb, typeDb, def, fkTable, fkColumn, nullable, pk))
+func (a *Attribute) Update(nameDb, typeDb, def, fkTable, fkType string, nullable, pk bool) error {
+	return a.node.SetValues(newAttributeValues(nameDb, typeDb, def, fkTable, fkType, nullable, pk))
 }
 
-func NewAttribute(entity *Entity, id uuid.UUID, nameDb, typeDb, def, fkTable, fkColumn string, nullable, pk bool) (*Attribute, error) {
-	node, err := entity.node.CreateChild("attribute", id, newAttributeValues(nameDb, typeDb, def, fkTable, fkColumn, nullable, pk))
+func NewAttribute(entity *Entity, id uuid.UUID, nameDb, typeDb, def, fkTable, fkType string, nullable, pk bool) (*Attribute, error) {
+	node, err := entity.node.CreateChild("attribute", id, newAttributeValues(nameDb, typeDb, def, fkTable, fkType, nullable, pk))
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func newAttribute(node *maker.Node, entity *Entity) *Attribute {
 	return attr
 }
 
-func newAttributeValues(nameDb, typeDb, def, fkTable, fkColumn string, nullable, pk bool) map[string]string {
+func newAttributeValues(nameDb, typeDb, def, fkTable, fkType string, nullable, pk bool) map[string]string {
 	return map[string]string{
 		"name":        nameDb,
 		"name_db":     nameDb,
@@ -74,7 +74,7 @@ func newAttributeValues(nameDb, typeDb, def, fkTable, fkColumn string, nullable,
 		"type_go":     typeconv.DbToGo(typeDb),
 		"default":     def,
 		"fk_table":    fkTable,
-		"fk_column":   fkColumn,
+		"fk_type":     fkType,
 		"nullable":    typeconv.BoolToString(nullable),
 		"primary_key": typeconv.BoolToString(pk),
 	}

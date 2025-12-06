@@ -8,9 +8,12 @@ export interface Attribute {
     type_db: string
     default: string
     fk_table: string
-    fk_column: string
+    fk_type: string
     nullable: boolean
     primary_key: boolean
+
+    type: string
+    length: number
 }
 
 export async function createAttributeHttp(entityId: string, attribute: Attribute) {

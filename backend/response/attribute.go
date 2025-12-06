@@ -11,7 +11,7 @@ type Attribute struct {
 	TypeDb     string    `json:"type_db"`
 	Default    string    `json:"default"`
 	FkTable    string    `json:"fk_table"`
-	FkColumn   string    `json:"fk_column"`
+	FkType     string    `json:"fk_type"`
 	Nullable   bool      `json:"nullable"`
 	PrimaryKey bool      `json:"primary_key"`
 }
@@ -32,7 +32,7 @@ func newAttribute(attr *entity.Attribute) Attribute {
 		TypeDb:     attr.TypeDb(),
 		Default:    attr.Default(),
 		FkTable:    attr.FkTable(),
-		FkColumn:   attr.FkColumn(),
+		FkType:     attr.FkType(),
 		Nullable:   attr.Nullable(),
 		PrimaryKey: attr.PrimaryKey(),
 	}
