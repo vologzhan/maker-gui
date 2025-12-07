@@ -6,10 +6,9 @@ export interface Attribute {
     nameDb: string
     typeDb: string
     default: string
-    fkTable: string
-    fkType: string
     nullable: boolean
     primaryKey: boolean
-    type: string // secondary
-    length: number // secondary
+    type: string
+    length: number
+    fk: Entity|null
 }

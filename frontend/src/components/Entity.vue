@@ -61,23 +61,43 @@ async function deleteEntity(entity: Entity) {
 async function getEntityList(serviceId: string) {
   const res = await GetEntityList(serviceId)
 
-  return res.items.map((entity: EntityResponse) => {
-    return convertEntityResponseToDto(entity)
+  const relations = new Map<string, Attribute[]>
+
+  const entities = res.items.map((entityRes: EntityResponse) => {
+    const entity: Entity = {
+      id: entityRes.id,
+      nameDb: entityRes.name_db,
+      attributes: [],
+    }
+
+    entity.attributes = entityRes.attributes.map((attrRes: AttributeResponse): Attribute => {
+      const attr = convertAttributeResponseToDto(entity, attrRes)
+
+      if (attrRes.fk_table === "") {
+        return attr
+      }
+
+      let relAttributes = relations.get(attrRes.fk_table)
+      if (!relAttributes) {
+        relAttributes = []
+        relations.set(attrRes.fk_table, relAttributes)
+      }
+
+      relAttributes.push(attr)
+
+      return attr
+    })
+
+    return entity
   })
-}
 
-function convertEntityResponseToDto(res: EntityResponse) {
-  const entity: Entity = {
-    id: res.id,
-    nameDb: res.name_db,
-    attributes: [],
-  }
-
-  entity.attributes = res.attributes.map((attr: AttributeResponse): Attribute => {
-    return convertAttributeResponseToDto(entity, attr)
+  entities.forEach((entity) => {
+    relations.get(entity.nameDb)?.forEach((attr) => {
+      attr.fk = entity
+    })
   })
 
-  return entity
+  return entities
 }
 
 function convertAttributeResponseToDto(entity: Entity, res: AttributeResponse) {
@@ -87,16 +107,15 @@ function convertAttributeResponseToDto(entity: Entity, res: AttributeResponse) {
     nameDb: res.name_db,
     typeDb: res.type_db,
     default: res.default,
-    fkTable: res.fk_table,
-    fkType: res.fk_type,
     nullable: res.nullable,
     primaryKey: res.primary_key,
     type: "",
     length: 0,
+    fk: null,
   }
 
-  if (attr.fkType !== "") {
-    attr.type = attr.fkType
+  if (res.fk_type !== "") {
+    attr.type = res.fk_type
   } else if (attr.typeDb === "timestamp(0)") {
     attr.type = "datetime"
   } else if (attr.typeDb === "text") {
@@ -133,8 +152,8 @@ async function createAttribute(attr: Attribute) {
     name_db: attr.nameDb,
     type_db: attr.typeDb,
     default: attr.default,
-    fk_table: attr.fkTable,
-    fk_type: attr.fkType,
+    fk_table: attr.fk ? attr.fk.nameDb : "",
+    fk_type: attr.fk ? attr.type : "",
     nullable: attr.nullable,
     primary_key: attr.primaryKey,
   })
@@ -145,8 +164,8 @@ async function updateAttribute(attr: Attribute) {
         name_db: attr.nameDb,
         type_db: attr.typeDb,
         default: attr.default,
-        fk_table: attr.fkTable,
-        fk_type: attr.fkType,
+        fk_table: attr.fk ? attr.fk.nameDb : "",
+        fk_type: attr.fk ? attr.type : "",
         nullable: attr.nullable,
         primary_key: attr.primaryKey,
       }
@@ -181,12 +200,11 @@ async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
     nameDb: "",
     typeDb: "",
     default: "",
-    fkTable: "",
-    fkType: "",
     nullable: false,
     primaryKey: false,
     type: "",
     length: 0,
+    fk: null,
   }
 
   const attr: Attribute = {
@@ -208,24 +226,22 @@ async function editType(attr: Attribute) {
   deleteDefaultNullIfNotNullable(attr)
 
   if (!isForeignKey(attr)) {
-    attr.fkTable = ""
-    attr.fkType = ""
+    attr.fk = null
   }
 
   if (attr.primaryKey) {
     return await editPrimaryKey(attr)
   }
 
-  if (attr.type === "datetime") {
+  if (isForeignKey(attr)) {
+    if (attr.fk === null) {
+      attr.typeDb = ""
+    }
+  } else if (attr.type === "datetime") {
     attr.typeDb = "timestamp(0)"
   } else if (attr.type === "string") {
     attr.length = 255
     attr.typeDb = calcTypeDbString(attr)
-  } else if (isForeignKey(attr)) {
-    attr.fkType = attr.type
-    if (attr.fkTable === "") {
-      attr.typeDb = ""
-    }
   } else {
     attr.typeDb = attr.type
   }
@@ -237,13 +253,12 @@ async function editPrimaryKey(attr: Attribute) {
   if (attr.type === "one-to-one") {
     attr.nameDb = ""
     attr.typeDb = ""
-    attr.fkType = "one-to-one"
 
     return
   }
 
-  let relOldTypeDb = attr.typeDb === "uuid" ? "uuid" : "int" // todo
-  let relNewTypeDb = attr.type === "uuid" ? "uuid" : "int"
+  // let relOldTypeDb = attr.typeDb === "uuid" ? "uuid" : "int" // todo
+  // let relNewTypeDb = attr.type === "uuid" ? "uuid" : "int"
 
   if (attr.type === "serial") {
     attr.nameDb = "id"
@@ -255,20 +270,19 @@ async function editPrimaryKey(attr: Attribute) {
   }
 
   await saveAttribute(attr)
-
-  if (relOldTypeDb === relNewTypeDb) {
-    return
-  }
-
-  for (const fkEntity of entities.value) {
-    for (const fkAttr of fkEntity.attributes) {
-      if (fkAttr.fkTable !== attr.entity.nameDb) {
-        continue
-      }
-
-      // todo
-    }
-  }
+  // todo
+  // if (relOldTypeDb === relNewTypeDb) {
+  //   return
+  // }
+  //
+  // for (const fkEntity of entities.value) {
+  //   for (const fkAttr of fkEntity.attributes) {
+  //     if (fkAttr.fkTable !== attr.entity.nameDb) {
+  //       continue
+  //     }
+  //
+  //   }
+  // }
 }
 
 function editLen(attr: Attribute) {
@@ -290,9 +304,10 @@ async function editNullable(attr: Attribute) {
 }
 
 function deleteDefaultNullIfNotNullable(attr: Attribute) {
-  if (!attr.nullable || attr.default !== "null") {
-    attr.default = ""
+  if (attr.nullable && attr.default === "null") {
+    return
   }
+  attr.default = ""
 }
 
 function setDefaultValueByType(attr: Attribute) {
@@ -327,22 +342,16 @@ function isForeignKey(attr: Attribute) {
 }
 
 function editForeignKey(attr: Attribute) {
-  for (const fkEntity of entities.value) {
-    if (fkEntity.nameDb !== attr.fkTable) {
+  if (attr.fk === null) {
+    return
+  }
+
+  for (const fkAttr of attr.fk.attributes) {
+    if (!fkAttr.primaryKey) {
       continue
     }
 
-    for (const fkAttr of fkEntity.attributes) {
-      if (!fkAttr.primaryKey) {
-        continue
-      }
-
-      attr.typeDb = fkAttr.typeDb === "uuid" ? "uuid" : "int"
-
-      break
-    }
-
-    break
+    attr.typeDb = fkAttr.typeDb === "uuid" ? "uuid" : "int"
   }
 
   saveAttribute(attr)
@@ -424,9 +433,9 @@ function editForeignKey(attr: Attribute) {
         </label>
 
         <label v-show="isForeignKey(attr)"> FK table:
-          <select class="sticky" v-model="attr.fkTable" @change="editForeignKey(attr)">
+          <select class="sticky" v-model="attr.fk" @change="editForeignKey(attr)">
             <option disabled value="">FK table</option>
-            <option v-for="fkEntity in entities">{{ fkEntity.nameDb }}</option>
+            <option v-for="fkEntity in entities" :value="fkEntity">{{ fkEntity.nameDb }}</option>
           </select>
         </label>
       </div>
