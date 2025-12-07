@@ -25,10 +25,20 @@ async function saveEntity(entity: Entity) {
   }
 
   if (entity.id === "") {
-    return await createEntity(entity)
+    await createEntity(entity)
+  } else {
+    await updateEntity(entity)
   }
 
-  return await updateEntity(entity)
+  for (const fkEntity of entities.value) {
+    for (const fkAttr of fkEntity.attributes) {
+      if (fkAttr.fk !== entity) {
+        continue
+      }
+
+      await saveAttribute(fkAttr)
+    }
+  }
 }
 
 async function createEntity(entity: Entity) {
