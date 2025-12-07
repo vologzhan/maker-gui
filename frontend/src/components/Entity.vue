@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import {defineProps, ref, watch} from 'vue';
 import {v4 as uuid} from 'uuid';
-import type {Service} from "../http/service.ts";
-import {createEntityHttp, deleteEntityHttp, type Entity, getEntityListHttp, updateEntityHttp} from "../http/entity.ts";
-import {type Attribute, createAttributeHttp, deleteAttributeHttp, updateAttributeHttp} from "../http/attribute.ts";
+import type {Service} from "../dto/service.ts";
+import type {Entity} from "../dto/entity.ts";
+import type {Attribute} from "../dto/attribute.ts";
+import {CreateEntity, DeleteEntity, GetEntityList, UpdateEntity} from "../http/controller/entity.ts";
+import {CreateAttribute, DeleteAttribute, UpdateAttribute} from "../http/controller/attribute.ts";
+import type {EntityResponse} from "../http/response/entity.ts";
+import type {AttributeResponse} from "../http/response/attribute.ts";
 
 const entities = ref<Entity[]>([])
 
@@ -15,86 +19,172 @@ watch(() => props.service.id, async (serviceId: string) => {
   entities.value = await getEntityList(serviceId)
 });
 
-async function getEntityList(serviceId: string) {
-  const entityList = await getEntityListHttp(serviceId)
-
-  for (const entity of entityList) {
-    for (const attribute of entity.attributes) {
-      if (attribute.primary_key) {
-        attribute.type = attribute.type_db === "uuid" ? "PK uuid" : "PK serial"
-      } else if (attribute.fk_table) {
-        attribute.type = attribute.fk_type
-      } else if (attribute.type_db === "timestamp(0)") {
-        attribute.type = "datetime"
-      } else if (attribute.type_db === "text") {
-        attribute.type = "string"
-        attribute.length = 0
-      } else if (attribute.type_db.startsWith("varchar")) {
-        attribute.type = "string"
-        attribute.length = Number(
-            attribute.type_db.substring(attribute.type_db.indexOf('(') + 1, attribute.type_db.indexOf(')'))
-        )
-      } else {
-        attribute.type = attribute.type_db
-      }
-    }
-  }
-
-  return entityList
-}
-
-function addEntity() {
-  const entity = {
-    id: "",
-    name_db: "",
-    attributes: [],
-  }
-  entities.value.push(entity)
-  addAttribute(entity, {
-    name_db: "uuid",
-    type: "PK uuid",
-    type_db: "uuid",
-    default: "uuid_generate_v4()",
-    primary_key: true,
-  })
-}
-
 async function saveEntity(entity: Entity) {
-  if (entity.name_db.trim() === "") {
+  if (entity.nameDb.trim() === "") {
     return
   }
 
-  if (entity.id !== "") {
-    await updateEntityHttp(entity)
-    return
+  if (entity.id === "") {
+    return await createEntity(entity)
   }
 
+  return await updateEntity(entity)
+}
+
+async function createEntity(entity: Entity) {
   entity.id = uuid()
-  await createEntityHttp(props.service.id, entity)
+
+  await CreateEntity(props.service.id, {
+    id: entity.id,
+    name_db: entity.nameDb,
+  })
 
   for (const attr of entity.attributes) {
-    await saveAttribute(entity.id, attr)
+    await saveAttribute(attr)
   }
+}
+
+async function updateEntity(entity: Entity) {
+  await UpdateEntity(entity.id, {
+    name_db: entity.nameDb,
+  })
 }
 
 async function deleteEntity(entity: Entity) {
   entities.value.splice(entities.value.indexOf(entity), 1);
 
   if (entity.id !== "") {
-    await deleteEntityHttp(entity.id)
+    await DeleteEntity(entity.id)
   }
 }
 
-function addAttribute(entity: Entity, options?: Partial<Attribute>) {
-  const defaults: Attribute = {
-    id: "",
-    name_db: "",
-    type_db: "",
+async function getEntityList(serviceId: string) {
+  const res = await GetEntityList(serviceId)
+
+  return res.items.map((entity: EntityResponse) => {
+    return convertEntityResponseToDto(entity)
+  })
+}
+
+function convertEntityResponseToDto(res: EntityResponse) {
+  const entity: Entity = {
+    id: res.id,
+    nameDb: res.name_db,
+    attributes: [],
+  }
+
+  entity.attributes = res.attributes.map((attr: AttributeResponse): Attribute => {
+    return convertAttributeResponseToDto(entity, attr)
+  })
+
+  return entity
+}
+
+function convertAttributeResponseToDto(entity: Entity, res: AttributeResponse) {
+  const attr: Attribute = {
+    entity: entity,
+    id: res.id,
+    nameDb: res.name_db,
+    typeDb: res.type_db,
+    default: res.default,
+    fkTable: res.fk_table,
+    fkType: res.fk_type,
+    nullable: res.nullable,
+    primaryKey: res.primary_key,
+    type: "",
+    length: 0,
+  }
+
+  if (attr.fkType !== "") {
+    attr.type = attr.fkType
+  } else if (attr.typeDb === "timestamp(0)") {
+    attr.type = "datetime"
+  } else if (attr.typeDb === "text") {
+    attr.type = "string"
+  } else if (attr.typeDb.startsWith("varchar")) {
+    attr.type = "string"
+    attr.length = Number(
+        attr.typeDb.substring(attr.typeDb.indexOf('(') + 1, attr.typeDb.indexOf(')'))
+    )
+  } else {
+    attr.type = attr.typeDb
+  }
+
+  return attr
+}
+
+async function saveAttribute(attr: Attribute) {
+  if (attr.entity.id === "" || attr.nameDb === "" || attr.typeDb === "") {
+    return
+  }
+
+  if (attr.id === "") {
+    return createAttribute(attr)
+  }
+
+  return updateAttribute(attr)
+}
+
+async function createAttribute(attr: Attribute) {
+  attr.id = uuid()
+
+  await CreateAttribute(attr.entity.id, {
+    id: attr.id,
+    name_db: attr.nameDb,
+    type_db: attr.typeDb,
+    default: attr.default,
+    fk_table: attr.fkTable,
+    fk_type: attr.fkType,
+    nullable: attr.nullable,
+    primary_key: attr.primaryKey,
+  })
+}
+
+async function updateAttribute(attr: Attribute) {
+  await UpdateAttribute(attr.id, {
+        name_db: attr.nameDb,
+        type_db: attr.typeDb,
+        default: attr.default,
+        fk_table: attr.fkTable,
+        fk_type: attr.fkType,
+        nullable: attr.nullable,
+        primary_key: attr.primaryKey,
+      }
+  )
+}
+
+async function deleteAttribute(attr: Attribute) {
+  attr.entity.attributes.splice(attr.entity.attributes.indexOf(attr), 1)
+
+  if (attr.id !== "") {
+    await DeleteAttribute(attr.id)
+  }
+}
+
+function addEntity() {
+  const entity: Entity = {id: "", nameDb: "", attributes: []}
+  entities.value.push(entity)
+
+  addAttribute(entity, {
+    nameDb: "id",
+    typeDb: "serial",
     default: "",
-    fk_table: "",
-    fk_type: "",
+    primaryKey: true,
+    type: "serial",
+  })
+}
+
+async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
+  const defaults: Attribute = {
+    entity: entity,
+    id: "",
+    nameDb: "",
+    typeDb: "",
+    default: "",
+    fkTable: "",
+    fkType: "",
     nullable: false,
-    primary_key: false,
+    primaryKey: false,
     type: "",
     length: 0,
   }
@@ -105,79 +195,113 @@ function addAttribute(entity: Entity, options?: Partial<Attribute>) {
   }
 
   entity.attributes.push(attr)
-  saveAttribute(entity.id, attr)
+
+  return  saveAttribute(attr)
 }
 
 function hasAttribute(entity: Entity, nameDb: string) {
-  return entity.attributes.some(attribute => attribute.name_db === nameDb)
+  return entity.attributes.some(attr => attr.nameDb === nameDb)
 }
 
-async function saveAttribute(entityId: string, attribute: Attribute) {
-  if (entityId === "" || attribute.name_db === "" || attribute.type_db === "") {
+async function editType(attr: Attribute) {
+  attr.length = 0
+  deleteDefaultNullIfNotNullable(attr)
+
+  if (!isForeignKey(attr)) {
+    attr.fkTable = ""
+    attr.fkType = ""
+  }
+
+  if (attr.primaryKey) {
+    return await editPrimaryKey(attr)
+  }
+
+  if (attr.type === "datetime") {
+    attr.typeDb = "timestamp(0)"
+  } else if (attr.type === "string") {
+    attr.length = 255
+    attr.typeDb = calcTypeDbString(attr)
+  } else if (isForeignKey(attr)) {
+    attr.fkType = attr.type
+    if (attr.fkTable === "") {
+      attr.typeDb = ""
+    }
+  } else {
+    attr.typeDb = attr.type
+  }
+
+  return saveAttribute(attr)
+}
+
+async function editPrimaryKey(attr: Attribute) {
+  if (attr.type === "one-to-one") {
+    attr.nameDb = ""
+    attr.typeDb = ""
+    attr.fkType = "one-to-one"
+
     return
   }
 
-  if (attribute.id == "") {
-    attribute.id = uuid()
-    await createAttributeHttp(entityId, attribute)
-  } else {
-    await updateAttributeHttp(attribute)
+  let relOldTypeDb = attr.typeDb === "uuid" ? "uuid" : "int" // todo
+  let relNewTypeDb = attr.type === "uuid" ? "uuid" : "int"
+
+  if (attr.type === "serial") {
+    attr.nameDb = "id"
+    attr.typeDb = attr.type
+  } else if (attr.type === "uuid") {
+    attr.nameDb = "uuid"
+    attr.typeDb = attr.type
+    attr.default = "uuid_generate_v4()"
+  }
+
+  await saveAttribute(attr)
+
+  if (relOldTypeDb === relNewTypeDb) {
+    return
+  }
+
+  for (const fkEntity of entities.value) {
+    for (const fkAttr of fkEntity.attributes) {
+      if (fkAttr.fkTable !== attr.entity.nameDb) {
+        continue
+      }
+
+      // todo
+    }
   }
 }
 
-function editType(entityId: string, attribute: Attribute) {
-  if (attribute.type === "PK uuid") {
-    attribute.name_db = "uuid"
-    attribute.type_db = "uuid"
-    attribute.default = "uuid_generate_v4()"
-  } else if (attribute.type === "PK serial") {
-    attribute.name_db = "id"
-    attribute.type_db = "serial"
-    attribute.default = ""
-  } else if (attribute.type === "datetime") {
-    attribute.type_db = "timestamp(0)"
-  } else if (attribute.type === "string") {
-    attribute.length = 255
-    calcTypeString(attribute)
-  } else if (attribute.type === "one-to-one" || attribute.type === "many-to-one") {
-    attribute.fk_type = attribute.type
-  } else if (attribute.type === "PK one-to-one") {
-    attribute.fk_type = "one-to-one"
-  } else {
-    attribute.type_db = attribute.type
+function editLen(attr: Attribute) {
+  attr.typeDb = calcTypeDbString(attr)
+  saveAttribute(attr)
+}
+
+function calcTypeDbString(attr: Attribute) {
+  if (attr.length < 1) {
+    return "text"
   }
-
-  saveAttribute(entityId, attribute)
+  return `varchar(${attr.length})`
 }
 
-function editLen(entityId: string, attribute: Attribute) {
-  calcTypeString(attribute)
-  saveAttribute(entityId, attribute)
+async function editNullable(attr: Attribute) {
+  deleteDefaultNullIfNotNullable(attr)
+
+  return saveAttribute(attr)
 }
 
-function calcTypeString(attribute: Attribute) {
-  if (attribute.length < 1) {
-    attribute.type_db = "text"
-  } else (
-      attribute.type_db = `varchar(${attribute.length})`
-  )
-}
-
-async function deleteAttribute(entity: Entity, attribute: Attribute) {
-  entity.attributes.splice(entity.attributes.indexOf(attribute), 1)
-
-  if (attribute.id !== "") {
-    await deleteAttributeHttp(attribute.id)
+function deleteDefaultNullIfNotNullable(attr: Attribute) {
+  if (!attr.nullable || attr.default !== "null") {
+    attr.default = ""
   }
 }
 
-function setDefaultValueByType(entityId: string, attribute: Attribute) {
-  attribute.default = (() => {
-    if (attribute.nullable) {
+function setDefaultValueByType(attr: Attribute) {
+  attr.default = (() => {
+    if (attr.nullable) {
       return "null"
     }
 
-    switch (attribute.type) {
+    switch (attr.type) {
       case "string":
         return "''"
       case "int":
@@ -195,25 +319,25 @@ function setDefaultValueByType(entityId: string, attribute: Attribute) {
     }
   })()
 
-  saveAttribute(entityId, attribute)
+  saveAttribute(attr)
 }
 
 function isForeignKey(attr: Attribute) {
-  return attr.type === "one-to-one" || attr.type === "many-to-one" || attr.type === "PK one-to-one"
+  return attr.type === "one-to-one" || attr.type === "many-to-one"
 }
 
-function editForeignKey(entityId: string, attr: Attribute) {
+function editForeignKey(attr: Attribute) {
   for (const fkEntity of entities.value) {
-    if (fkEntity.name_db !== attr.fk_table) {
+    if (fkEntity.nameDb !== attr.fkTable) {
       continue
     }
 
     for (const fkAttr of fkEntity.attributes) {
-      if (!fkAttr.primary_key) {
+      if (!fkAttr.primaryKey) {
         continue
       }
 
-      attr.type_db = fkAttr.type_db === "uuid" ? "uuid" : "int"
+      attr.typeDb = fkAttr.typeDb === "uuid" ? "uuid" : "int"
 
       break
     }
@@ -221,7 +345,7 @@ function editForeignKey(entityId: string, attr: Attribute) {
     break
   }
 
-  saveAttribute(entityId, attr)
+  saveAttribute(attr)
 }
 </script>
 
@@ -237,7 +361,7 @@ function editForeignKey(entityId: string, attr: Attribute) {
     <div class="entity-container" v-for="entity in entities" :key="entity.id">
       Table:
       <input type="text" class="sticky" placeholder="table_name"
-             v-model="entity.name_db"
+             v-model="entity.nameDb"
              @change="saveEntity(entity)"
       />
 
@@ -245,65 +369,64 @@ function editForeignKey(entityId: string, attr: Attribute) {
         <i class="fa-solid fa-ban"></i> Table
       </button>
 
-      <div class="attribute-container" v-for="attribute in entity.attributes" :key="attribute.id">
-        <input type="checkbox" hidden v-model="attribute.primary_key"/>
+      <div class="attribute-container" v-for="attr in entity.attributes" :key="attr.id">
+        <input type="checkbox" hidden v-model="attr.primaryKey"/>
 
-        <button :disabled="attribute.primary_key" @click="deleteAttribute(entity, attribute)">
+        <button :disabled="attr.primaryKey" @click="deleteAttribute(attr)">
           <i class="fa-solid fa-ban"></i>
         </button>
 
         <input type="text" placeholder="column_name"
-               v-model="attribute.name_db"
-               :disabled="attribute.primary_key"
-               @change="saveAttribute(entity.id, attribute)"
+               v-model="attr.nameDb"
+               :disabled="attr.primaryKey && !isForeignKey(attr)"
+               @change="saveAttribute(attr)"
         />
 
-        <select v-model="attribute.type" @change="editType(entity.id, attribute)">
+        <select v-model="attr.type" @change="editType(attr)">
           <option disabled value="">Type</option>
-          <option v-show="!attribute.primary_key">string</option>
-          <option v-show="!attribute.primary_key">int</option>
-          <option v-show="!attribute.primary_key">bool</option>
-          <option v-show="!attribute.primary_key">json</option>
-          <option v-show="!attribute.primary_key">datetime</option>
-          <option>{{ attribute.primary_key ? "PK uuid" : "uuid" }}</option>
-          <option v-show="attribute.primary_key">PK serial</option>
-          <option>{{ attribute.primary_key ? "PK one-to-one" : "one-to-one" }}</option>
-          <option v-show="!attribute.primary_key">many-to-one</option>
+          <option v-show="!attr.primaryKey">string</option>
+          <option v-show="!attr.primaryKey">int</option>
+          <option v-show="!attr.primaryKey">bool</option>
+          <option v-show="!attr.primaryKey">json</option>
+          <option v-show="!attr.primaryKey">datetime</option>
+          <option value="serial" v-show="attr.primaryKey">PK serial</option>
+          <option value="uuid">{{ attr.primaryKey ? "PK uuid" : "uuid" }}</option>
+          <option value="one-to-one">{{ attr.primaryKey ? "PK one-to-one" : "one-to-one" }}</option>
+          <option v-show="!attr.primaryKey">many-to-one</option>
         </select>
 
         <label class="disabled"> db:
-          <input class="sticky" type="text" :disabled="true" :value="attribute.type_db"/>
+          <input class="sticky" type="text" :disabled="true" :value="attr.typeDb"/>
         </label>
 
-        <label :class="{ 'disabled': attribute.primary_key }"> Null
+        <label :class="{ 'disabled': attr.primaryKey }"> Null
           <input type="checkbox" class="sticky"
-                 v-model="attribute.nullable"
-                 :disabled="attribute.primary_key"
-                 @change="saveAttribute(entity.id, attribute)"
+                 v-model="attr.nullable"
+                 :disabled="attr.primaryKey"
+                 @change="editNullable(attr)"
           />
         </label>
 
-        <label :class="{ 'disabled': attribute.primary_key }"> Default:
+        <label :class="{ 'disabled': attr.primaryKey }"> Default:
           <input type="text" placeholder="<none>" class="sticky"
-                 v-model="attribute.default"
-                 :disabled="attribute.primary_key"
-                 @change="saveAttribute(entity.id, attribute)"
+                 v-model="attr.default"
+                 :disabled="attr.primaryKey"
+                 @change="saveAttribute(attr)"
           />
         </label>
-        <button class="sticky" :disabled="attribute.primary_key" @click="setDefaultValueByType(entity.id, attribute)">
+        <button class="sticky" :disabled="attr.primaryKey" @click="setDefaultValueByType(attr)">
           Default by type
         </button>
 
-        <label v-show="attribute.type === 'string'" @change="editLen(entity.id, attribute)"> Len:
-          <input type="number" placeholder="<text>" class="sticky" v-model="attribute.length"
-                 @change="saveAttribute(entity.id, attribute)"/>
+        <label v-show="attr.type === 'string'"> Len:
+          <input type="number" placeholder="<text>" class="sticky" v-model="attr.length" @change="editLen(attr)"/>
           < 1 for text
         </label>
 
-        <label v-show="isForeignKey(attribute)" @change="editForeignKey(entity.id, attribute)"> FK table:
-          <select class="sticky" v-model="attribute.fk_table">
+        <label v-show="isForeignKey(attr)"> FK table:
+          <select class="sticky" v-model="attr.fkTable" @change="editForeignKey(attr)">
             <option disabled value="">FK table</option>
-            <option v-for="fkEntity in entities">{{ fkEntity.name_db }}</option>
+            <option v-for="fkEntity in entities">{{ fkEntity.nameDb }}</option>
           </select>
         </label>
       </div>
@@ -314,19 +437,19 @@ function editForeignKey(entityId: string, attr: Attribute) {
         </button>
         <button
             v-show="!hasAttribute(entity, 'created_at')"
-            @click="addAttribute(entity, {name_db: 'created_at', type: 'datetime', type_db: 'timestamp(0)', default: 'now()'})"
+            @click="addAttribute(entity, {nameDb: 'created_at', typeDb: 'timestamp(0)', default: 'now()', type: 'datetime'})"
         >
           <i class="fa-solid fa-plus"></i> created_at
         </button>
         <button
             v-show="!hasAttribute(entity, 'updated_at')"
-            @click="addAttribute(entity, {name_db: 'updated_at', type: 'datetime', type_db: 'timestamp(0)', default: 'null', nullable: true})"
+            @click="addAttribute(entity, {nameDb: 'updated_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
         >
           <i class="fa-solid fa-plus"></i> updated_at
         </button>
         <button
             v-show="!hasAttribute(entity, 'deleted_at')"
-            @click="addAttribute(entity, {name_db: 'deleted_at', type: 'datetime', type_db: 'timestamp(0)', default: 'null', nullable: true})"
+            @click="addAttribute(entity, {nameDb: 'deleted_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
         >
           <i class="fa-solid fa-plus"></i> deleted_at
         </button>

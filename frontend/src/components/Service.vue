@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import {onMounted, ref} from "vue"
-import {createServiceHttp, getServiceListHttp, type Service} from "../http/service"
 import {v4 as uuid} from 'uuid'
+import {CreateService, GetServiceList} from "../http/controller/service.ts";
+import type {Service} from "../dto/service.ts";
+import type {ServiceResponse} from "../http/response/service.ts";
+
+const services = ref<Service[]>([])
+const newServiceName = ref("")
 
 const emit = defineEmits<{
   (e: 'service-selected', service: Service): void
 }>()
 
-const services = ref<Service[]>([])
-const newServiceName = ref("")
-
 onMounted(async () => {
-  services.value = await getServiceListHttp()
+  services.value = await getServiceList()
 })
+
+async function getServiceList() {
+  const res = await GetServiceList()
+
+  return res.items.map((service: ServiceResponse): Service => {
+    return {id: service.id, name: service.name}
+  })
+}
 
 async function createService() {
   const name = newServiceName.value.trim()
@@ -20,13 +30,8 @@ async function createService() {
     return
   }
 
-  const service: Service = {
-    id: uuid(),
-    name: name,
-  }
-
-  await createServiceHttp(service)
-
+  const service: Service = {id: uuid(), name: name}
+  await CreateService(service)
   services.value.push(service)
   newServiceName.value = ""
 }

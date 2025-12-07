@@ -1,8 +1,14 @@
 package typeconv
 
+import "strings"
+
 func DbToGo(db string) string {
+	if strings.HasPrefix(db, "varchar") {
+		return "string"
+	}
+
 	switch db {
-	case "string", "text":
+	case "text":
 		return "string"
 	case "int", "serial":
 		return "int"
