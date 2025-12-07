@@ -161,10 +161,30 @@ async function saveAttribute(attr: Attribute) {
   }
 
   if (attr.id === "") {
-    return createAttribute(attr)
+    await createAttribute(attr)
+  } else {
+    await updateAttribute(attr)
   }
 
-  return updateAttribute(attr)
+  if (!attr.primaryKey) {
+    return
+  }
+
+  const newFkType = calcFkTypeByDbType(attr.typeDb)
+
+  for (const fkEntity of entities.value) {
+    for (const fkAttr of fkEntity.attributes) {
+      if (fkAttr.fk !== attr.entity) {
+        continue
+      }
+
+      if (calcFkTypeByDbType(fkAttr.typeDb) !== newFkType) {
+        fkAttr.typeDb = newFkType
+
+        await saveAttribute(fkAttr)
+      }
+    }
+  }
 }
 
 async function createAttribute(attr: Attribute) {
@@ -280,9 +300,6 @@ async function editPrimaryKey(attr: Attribute) {
     return
   }
 
-  // let relOldTypeDb = attr.typeDb === "uuid" ? "uuid" : "int" // todo
-  // let relNewTypeDb = attr.type === "uuid" ? "uuid" : "int"
-
   if (attr.type === "serial") {
     attr.nameDb = "id"
     attr.typeDb = attr.type
@@ -293,19 +310,6 @@ async function editPrimaryKey(attr: Attribute) {
   }
 
   await saveAttribute(attr)
-  // todo
-  // if (relOldTypeDb === relNewTypeDb) {
-  //   return
-  // }
-  //
-  // for (const fkEntity of entities.value) {
-  //   for (const fkAttr of fkEntity.attributes) {
-  //     if (fkAttr.fkTable !== attr.entity.nameDb) {
-  //       continue
-  //     }
-  //
-  //   }
-  // }
 }
 
 function editLen(attr: Attribute) {
@@ -364,6 +368,13 @@ function isForeignKey(attr: Attribute) {
   return attr.type === "one-to-one" || attr.type === "many-to-one"
 }
 
+function calcFkTypeByDbType(typeDb: string) {
+  if (typeDb === "uuid") {
+    return "uuid"
+  }
+  return "int"
+}
+
 function editForeignKey(attr: Attribute) {
   if (attr.fk === null) {
     return
@@ -374,7 +385,7 @@ function editForeignKey(attr: Attribute) {
       continue
     }
 
-    attr.typeDb = fkAttr.typeDb === "uuid" ? "uuid" : "int"
+    attr.typeDb = calcFkTypeByDbType(fkAttr.typeDb)
   }
 
   saveAttribute(attr)
