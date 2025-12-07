@@ -66,6 +66,19 @@ async function deleteEntity(entity: Entity) {
   if (entity.id !== "") {
     await DeleteEntity(entity.id)
   }
+
+  for (const fkEntity of entities.value) {
+    for (const fkAttr of fkEntity.attributes) {
+      if (fkAttr.fk !== entity) {
+        continue
+      }
+
+      fkAttr.fk = null
+      fkAttr.type = fkAttr.typeDb
+
+      await saveAttribute(fkAttr)
+    }
+  }
 }
 
 async function getEntityList(serviceId: string) {
