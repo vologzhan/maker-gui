@@ -38,7 +38,7 @@ func (a *Attribute) Delete() error {
 		return err
 	}
 
-	slices.Delete(a.entity.attributes, a)
+	a.entity.attributes = slices.Delete(a.entity.attributes, a)
 
 	return nil
 }

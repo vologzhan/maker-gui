@@ -61,11 +61,11 @@ async function updateEntity(entity: Entity) {
 }
 
 async function deleteEntity(entity: Entity) {
-  entities.value.splice(entities.value.indexOf(entity), 1);
-
   if (entity.id !== "") {
     await DeleteEntity(entity.id)
   }
+
+  entities.value.splice(entities.value.indexOf(entity), 1);
 
   for (const fkEntity of entities.value) {
     for (const fkAttr of fkEntity.attributes) {
@@ -216,11 +216,11 @@ async function updateAttribute(attr: Attribute) {
 }
 
 async function deleteAttribute(attr: Attribute) {
-  attr.entity.attributes.splice(attr.entity.attributes.indexOf(attr), 1)
-
   if (attr.id !== "") {
     await DeleteAttribute(attr.id)
   }
+
+  attr.entity.attributes.splice(attr.entity.attributes.indexOf(attr), 1)
 }
 
 function addEntity() {
@@ -266,7 +266,9 @@ function hasAttribute(entity: Entity, nameDb: string) {
 
 async function editType(attr: Attribute) {
   attr.length = 0
-  deleteDefaultNullIfNotNullable(attr)
+  if (!attr.nullable || attr.default !== "null") {
+    attr.default = ""
+  }
 
   if (!isForeignKey(attr)) {
     attr.fk = null
@@ -325,16 +327,11 @@ function calcTypeDbString(attr: Attribute) {
 }
 
 async function editNullable(attr: Attribute) {
-  deleteDefaultNullIfNotNullable(attr)
+  if (!attr.nullable && attr.default === "null") {
+    attr.default = ""
+  }
 
   return saveAttribute(attr)
-}
-
-function deleteDefaultNullIfNotNullable(attr: Attribute) {
-  if (attr.nullable && attr.default === "null") {
-    return
-  }
-  attr.default = ""
 }
 
 function setDefaultValueByType(attr: Attribute) {

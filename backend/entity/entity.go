@@ -49,7 +49,7 @@ func (e *Entity) Delete() error {
 		return err
 	}
 
-	slices.Delete(e.service.entities, e)
+	e.service.entities = slices.Delete(e.service.entities, e)
 
 	return nil
 }
