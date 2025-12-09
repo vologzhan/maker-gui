@@ -2,7 +2,7 @@ package response
 
 import (
 	"github.com/google/uuid"
-	"github.com/vologzhan/maker-gui/backend/entity"
+	"github.com/vologzhan/maker-gui/backend/maker/models"
 )
 
 type Attribute struct {
@@ -16,7 +16,7 @@ type Attribute struct {
 	PrimaryKey bool      `json:"primary_key"`
 }
 
-func newAttributeSlice(attrs []*entity.Attribute) []Attribute {
+func newAttributeSlice(attrs []*models.Attribute) []Attribute {
 	items := make([]Attribute, len(attrs))
 	for i, attr := range attrs {
 		items[i] = newAttribute(attr)
@@ -25,7 +25,7 @@ func newAttributeSlice(attrs []*entity.Attribute) []Attribute {
 	return items
 }
 
-func newAttribute(attr *entity.Attribute) Attribute {
+func newAttribute(attr *models.Attribute) Attribute {
 	return Attribute{
 		Id:         attr.Id(),
 		NameDb:     attr.NameDb(),

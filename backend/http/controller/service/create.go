@@ -2,10 +2,10 @@ package service
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/vologzhan/maker-gui/backend/entity"
 	"github.com/vologzhan/maker-gui/backend/http/request"
 	"github.com/vologzhan/maker-gui/backend/http/response"
-	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/maker/models"
+	"github.com/vologzhan/maker-gui/backend/maker/repository"
 	"net/http"
 )
 
@@ -30,7 +30,7 @@ func (c *Create) Handle(ctx echo.Context) error {
 func (c *Create) handle(req request.ServiceCreate) error {
 	root := c.rep.Root()
 
-	service, err := entity.NewService(root, req.Id, req.Name)
+	service, err := models.NewService(root, req.Id, req.Name)
 	if err != nil {
 		return err
 	}

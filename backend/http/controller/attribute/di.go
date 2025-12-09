@@ -2,7 +2,7 @@ package attribute
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/maker/repository"
 	"net/http"
 )
 

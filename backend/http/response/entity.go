@@ -2,7 +2,7 @@ package response
 
 import (
 	"github.com/google/uuid"
-	"github.com/vologzhan/maker-gui/backend/entity"
+	"github.com/vologzhan/maker-gui/backend/maker/models"
 )
 
 type EntityList struct {
@@ -15,19 +15,19 @@ type Entity struct {
 	Attributes []Attribute `json:"attributes"`
 }
 
-func NewEntityList(entities []*entity.Entity) *EntityList {
+func NewEntityList(entities []*models.Entity) *EntityList {
 	items := make([]Entity, len(entities))
-	for i, e := range entities {
-		items[i] = newEntity(e)
+	for i, entity := range entities {
+		items[i] = newEntity(entity)
 	}
 
 	return &EntityList{items}
 }
 
-func newEntity(e *entity.Entity) Entity {
+func newEntity(entity *models.Entity) Entity {
 	return Entity{
-		e.Id(),
-		e.NameDb(),
-		newAttributeSlice(e.MustAttributes()),
+		entity.Id(),
+		entity.NameDb(),
+		newAttributeSlice(entity.MustAttributes()),
 	}
 }

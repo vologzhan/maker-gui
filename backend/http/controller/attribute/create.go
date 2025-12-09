@@ -2,10 +2,10 @@ package attribute
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/vologzhan/maker-gui/backend/entity"
 	"github.com/vologzhan/maker-gui/backend/http/request"
 	"github.com/vologzhan/maker-gui/backend/http/response"
-	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/maker/models"
+	"github.com/vologzhan/maker-gui/backend/maker/repository"
 	"net/http"
 )
 
@@ -28,19 +28,19 @@ func (c *Create) Handle(ctx echo.Context) error {
 }
 
 func (c *Create) handle(req request.AttributeCreate) error {
-	e, err := c.repository.Entity(req.EntityId)
+	entity, err := c.repository.Entity(req.EntityId)
 	if err != nil {
 		return err
 	}
 
-	attr, err := entity.NewAttribute(e, req.Id, req.NameDb, req.TypeDb, req.Default, req.FkTable, req.FkType, req.Nullable, req.PrimaryKey)
+	attr, err := models.NewAttribute(entity, req.Id, req.NameDb, req.TypeDb, req.Default, req.FkTable, req.FkType, req.Nullable, req.PrimaryKey)
 	if err != nil {
 		return err
 	}
 
 	c.repository.CreateAttribute(attr)
 
-	service := e.Service()
+	service := entity.Service()
 
 	// todo sql
 

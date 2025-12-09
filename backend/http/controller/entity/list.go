@@ -4,7 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/vologzhan/maker-gui/backend/http/request"
 	"github.com/vologzhan/maker-gui/backend/http/response"
-	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/maker/repository"
 	"net/http"
 )
 
@@ -37,10 +37,10 @@ func (c *List) handle(req request.EntityList) (*response.EntityList, error) {
 		return nil, err
 	}
 
-	for _, e := range entities {
-		c.repository.CreateEntity(e)
+	for _, entity := range entities {
+		c.repository.CreateEntity(entity)
 
-		attrs, err := e.Attributes()
+		attrs, err := entity.Attributes()
 		if err != nil {
 			return nil, err
 		}

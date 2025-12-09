@@ -6,7 +6,7 @@ import (
 	"github.com/vologzhan/maker-gui/backend/http/controller/attribute"
 	"github.com/vologzhan/maker-gui/backend/http/controller/entity"
 	"github.com/vologzhan/maker-gui/backend/http/controller/service"
-	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/maker/repository"
 )
 
 func New(server *echo.Echo, mak *maker.Node) {

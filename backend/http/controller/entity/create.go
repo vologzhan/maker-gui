@@ -2,10 +2,10 @@ package entity
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/vologzhan/maker-gui/backend/entity"
 	"github.com/vologzhan/maker-gui/backend/http/request"
 	"github.com/vologzhan/maker-gui/backend/http/response"
-	"github.com/vologzhan/maker-gui/backend/repository"
+	"github.com/vologzhan/maker-gui/backend/maker/models"
+	"github.com/vologzhan/maker-gui/backend/maker/repository"
 	"net/http"
 )
 
@@ -33,12 +33,12 @@ func (c *Create) handle(req request.EntityCreate) error {
 		return err
 	}
 
-	e, err := entity.NewEntity(service, req.Id, req.NameDb)
+	entity, err := models.NewEntity(service, req.Id, req.NameDb)
 	if err != nil {
 		return err
 	}
 
-	c.repository.CreateEntity(e)
+	c.repository.CreateEntity(entity)
 
 	// todo sql
 

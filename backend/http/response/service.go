@@ -3,7 +3,7 @@ package response
 import (
 	"github.com/google/uuid"
 	"github.com/vologzhan/maker-common/strcase"
-	"github.com/vologzhan/maker-gui/backend/entity"
+	"github.com/vologzhan/maker-gui/backend/maker/models"
 )
 
 type ServiceList struct {
@@ -15,7 +15,7 @@ type Service struct {
 	Name string    `json:"name"`
 }
 
-func NewServiceList(services []*entity.Service) *ServiceList {
+func NewServiceList(services []*models.Service) *ServiceList {
 	items := make([]Service, len(services))
 	for i, service := range services {
 		items[i] = newService(service)
@@ -24,7 +24,7 @@ func NewServiceList(services []*entity.Service) *ServiceList {
 	return &ServiceList{items}
 }
 
-func newService(service *entity.Service) Service {
+func newService(service *models.Service) Service {
 	return Service{
 		service.Id(),
 		strcase.ToKebab(service.Name()),
