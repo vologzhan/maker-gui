@@ -3,7 +3,7 @@ package entity
 import (
 	"github.com/google/uuid"
 	"github.com/vologzhan/maker"
-	"github.com/vologzhan/maker/helper/slices"
+	"github.com/vologzhan/maker-common/slices"
 )
 
 const entityNameDb = "name_db"

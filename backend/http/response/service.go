@@ -2,8 +2,8 @@ package response
 
 import (
 	"github.com/google/uuid"
+	"github.com/vologzhan/maker-common/strcase"
 	"github.com/vologzhan/maker-gui/backend/entity"
-	"github.com/vologzhan/maker/helper/strcase"
 )
 
 type ServiceList struct {
