@@ -21,9 +21,9 @@ func (m *▶EntityName◀) ToDto() dto.▶EntityName◀ {
 	}
 }
 
-type ▶⬇EntityPluralName◀ []*▶EntityName◀
+type ▶⬇EntityNamePlural◀ []*▶EntityName◀
 
-func (m ▶EntityPluralName◀) ToDto() []dto.▶EntityName◀ {
+func (m ▶EntityNamePlural◀) ToDto() []dto.▶EntityName◀ {
 	var out []dto.▶EntityName◀
 	for _, item := range m {
 		out = append(out, item.ToDto())

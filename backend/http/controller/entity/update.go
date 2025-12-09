@@ -32,7 +32,7 @@ func (c *Update) handle(req request.EntityUpdate) error {
 		return err
 	}
 
-	err = entity.Update(req.NameDb)
+	err = entity.Update(req.NameDb, req.NamePlural)
 	if err != nil {
 		return err
 	}

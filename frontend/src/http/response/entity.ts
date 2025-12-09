@@ -7,5 +7,6 @@ export interface EntityListResponse {
 export interface EntityResponse {
     id: string
     name_db: string
+    name_plural: string
     attributes: AttributeResponse[]
 }

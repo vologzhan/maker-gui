@@ -33,7 +33,7 @@ func (c *Create) handle(req request.EntityCreate) error {
 		return err
 	}
 
-	entity, err := models.NewEntity(service, req.Id, req.NameDb)
+	entity, err := models.NewEntity(service, req.Id, req.NameDb, req.NamePlural)
 	if err != nil {
 		return err
 	}

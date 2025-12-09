@@ -68,14 +68,14 @@ func newAttribute(node *maker.Node, entity *Entity) *Attribute {
 
 func newAttributeValues(nameDb, typeDb, def, fkTable, fkType string, nullable, pk bool) map[string]string {
 	return map[string]string{
-		"name":        nameDb,
-		"name_db":     nameDb,
-		"type_db":     typeDb,
-		"type_go":     typeconv.DbToGo(typeDb),
-		"default":     def,
-		"fk_table":    fkTable,
-		"fk_type":     fkType,
-		"nullable":    typeconv.BoolToString(nullable),
-		"primary_key": typeconv.BoolToString(pk),
+		"name":       nameDb,
+		attrNameDb:   nameDb,
+		attrTypeDb:   typeDb,
+		"type_go":    typeconv.DbToGo(typeDb),
+		attrDefault:  def,
+		attrFkTable:  fkTable,
+		attrFkType:   fkType,
+		attrNullable: typeconv.BoolToString(nullable),
+		attrPk:       typeconv.BoolToString(pk),
 	}
 }

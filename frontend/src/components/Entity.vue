@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import {defineProps, ref, watch} from 'vue';
 import {v4 as uuid} from 'uuid';
-import type {Service} from "../dto/service.ts";
-import type {Entity} from "../dto/entity.ts";
-import type {Attribute} from "../dto/attribute.ts";
+import pluralize from 'pluralize';
+import type {Service} from "../models/service.ts";
+import type {Entity} from "../models/entity.ts";
+import type {Attribute} from "../models/attribute.ts";
 import {CreateEntity, DeleteEntity, GetEntityList, UpdateEntity} from "../http/controller/entity.ts";
 import {CreateAttribute, DeleteAttribute, UpdateAttribute} from "../http/controller/attribute.ts";
 import type {EntityResponse} from "../http/response/entity.ts";
@@ -20,7 +21,7 @@ watch(() => props.service.id, async (serviceId: string) => {
 });
 
 async function saveEntity(entity: Entity) {
-  if (entity.nameDb.trim() === "") {
+  if (entity.nameDb === "" || entity.namePlural === "") {
     return
   }
 
@@ -47,6 +48,7 @@ async function createEntity(entity: Entity) {
   await CreateEntity(props.service.id, {
     id: entity.id,
     name_db: entity.nameDb,
+    name_plural: entity.namePlural,
   })
 
   for (const attr of entity.attributes) {
@@ -57,6 +59,7 @@ async function createEntity(entity: Entity) {
 async function updateEntity(entity: Entity) {
   await UpdateEntity(entity.id, {
     name_db: entity.nameDb,
+    name_plural: entity.namePlural,
   })
 }
 
@@ -90,6 +93,8 @@ async function getEntityList(serviceId: string) {
     const entity: Entity = {
       id: entityRes.id,
       nameDb: entityRes.name_db,
+      namePlural: entityRes.name_plural,
+      namePluralAuto: entityRes.name_plural === calcNamePlural(entityRes.name_db),
       attributes: [],
     }
 
@@ -224,7 +229,7 @@ async function deleteAttribute(attr: Attribute) {
 }
 
 function addEntity() {
-  const entity: Entity = {id: "", nameDb: "", attributes: []}
+  const entity: Entity = {id: "", nameDb: "", namePlural: "", namePluralAuto: true, attributes: []}
   entities.value.push(entity)
 
   addAttribute(entity, {
@@ -234,6 +239,42 @@ function addEntity() {
     primaryKey: true,
     type: "serial",
   })
+}
+
+async function changeEntityName(entity: Entity) {
+  entity.nameDb = entity.nameDb.trim()
+  if (entity.nameDb === "") {
+    return
+  }
+
+  if (entity.namePluralAuto) {
+    entity.namePlural = calcNamePlural(entity.nameDb)
+  }
+
+  return saveEntity(entity)
+}
+
+async function changeEntityNamePlural(entity: Entity) {
+  entity.namePlural = entity.namePlural.trim()
+  if (entity.namePlural === "") {
+    return
+  }
+
+  return saveEntity(entity)
+}
+
+async function changeEntityNamePluralAuto(entity: Entity) {
+  if (!entity.namePluralAuto) {
+    return
+  }
+  entity.namePlural = calcNamePlural(entity.nameDb)
+
+  return saveEntity(entity)
+}
+
+function calcNamePlural(name: string): string {
+  const plural = pluralize(name)
+  return plural === name ? `${name}_list` : plural
 }
 
 async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
@@ -257,7 +298,7 @@ async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
 
   entity.attributes.push(attr)
 
-  return  saveAttribute(attr)
+  return saveAttribute(attr)
 }
 
 function hasAttribute(entity: Entity, nameDb: string) {
@@ -391,23 +432,31 @@ function editForeignKey(attr: Attribute) {
 
 <template>
   <main>
-    <h2 v-if="!props.service.id">Select service</h2>
-    <h2 v-else>Service: {{ props.service.name }}</h2>
-
-    <button v-show="props.service.id" class="fixed-button" @click="addEntity()">
-      <i class="fa-solid fa-plus"></i> Table
-    </button>
+    <h2>{{ props.service.id ? `Service: ${props.service.name}` : "Select service" }}</h2>
 
     <div class="entity-container" v-for="entity in entities" :key="entity.id">
-      Table:
-      <input type="text" class="sticky" placeholder="table_name"
-             v-model="entity.nameDb"
-             @change="saveEntity(entity)"
-      />
-
       <button @click="deleteEntity(entity)">
-        <i class="fa-solid fa-ban"></i> Table
+        <i class="fa-solid fa-ban"></i>
       </button>
+
+      <label> table
+        <input type="text" class="sticky" placeholder="<table_name>"
+               v-model="entity.nameDb"
+               @change="changeEntityName(entity)"
+        />
+      </label>
+
+      <label :class="{ 'disabled': entity.namePluralAuto }"> plural
+        <input type="checkbox" class="sticky" title="auto"
+               v-model="entity.namePluralAuto"
+               @change="changeEntityNamePluralAuto(entity)"
+        />
+        <input type="text" class="sticky" placeholder="<plural_name>"
+               v-model="entity.namePlural"
+               :disabled="entity.namePluralAuto"
+               @change="changeEntityNamePlural(entity)"
+        />
+      </label>
 
       <div class="attribute-container" v-for="attr in entity.attributes" :key="attr.id">
         <input type="checkbox" hidden v-model="attr.primaryKey"/>
@@ -435,11 +484,11 @@ function editForeignKey(attr: Attribute) {
           <option v-show="!attr.primaryKey">many-to-one</option>
         </select>
 
-        <label class="disabled"> db:
+        <label class="disabled"> db
           <input class="sticky" type="text" :disabled="true" :value="attr.typeDb"/>
         </label>
 
-        <label :class="{ 'disabled': attr.primaryKey }"> Null
+        <label :class="{ 'disabled': attr.primaryKey }"> null
           <input type="checkbox" class="sticky"
                  v-model="attr.nullable"
                  :disabled="attr.primaryKey"
@@ -447,7 +496,7 @@ function editForeignKey(attr: Attribute) {
           />
         </label>
 
-        <label :class="{ 'disabled': attr.primaryKey }"> Default:
+        <label :class="{ 'disabled': attr.primaryKey }"> default
           <input type="text" placeholder="<none>" class="sticky"
                  v-model="attr.default"
                  :disabled="attr.primaryKey"
@@ -458,7 +507,7 @@ function editForeignKey(attr: Attribute) {
           Default by type
         </button>
 
-        <label v-show="attr.type === 'string'"> Len:
+        <label v-show="attr.type === 'string'"> len
           <input type="number" placeholder="<text>" class="sticky" v-model="attr.length" @change="editLen(attr)"/>
           < 1 for text
         </label>
@@ -495,6 +544,10 @@ function editForeignKey(attr: Attribute) {
         </button>
       </div>
     </div>
+
+    <button v-show="props.service.id" @click="addEntity()">
+      <i class="fa-solid fa-plus"></i> Table
+    </button>
   </main>
 </template>
 
@@ -523,12 +576,6 @@ main {
 
 .attribute-container {
   margin: 0.5rem;
-}
-
-.fixed-button {
-  position: fixed;
-  top: 2rem; /* Отступ от верхнего края */
-  right: 2rem; /* Отступ от правого края */
 }
 
 .disabled {

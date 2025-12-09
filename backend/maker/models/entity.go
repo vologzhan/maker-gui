@@ -7,6 +7,7 @@ import (
 )
 
 const entityNameDb = "name_db"
+const entityNamePlural = "name_plural"
 
 type Entity struct {
 	node       *maker.Node
@@ -14,9 +15,10 @@ type Entity struct {
 	attributes []*Attribute
 }
 
-func (e *Entity) Id() uuid.UUID     { return e.node.Id() }
-func (e *Entity) NameDb() string    { return e.node.ValueString(entityNameDb) }
-func (e *Entity) Service() *Service { return e.service }
+func (e *Entity) Id() uuid.UUID      { return e.node.Id() }
+func (e *Entity) NameDb() string     { return e.node.ValueString(entityNameDb) }
+func (e *Entity) NamePlural() string { return e.node.ValueString(entityNamePlural) }
+func (e *Entity) Service() *Service  { return e.service }
 
 func (e *Entity) Attributes() ([]*Attribute, error) {
 	if e.attributes == nil {
@@ -54,12 +56,12 @@ func (e *Entity) Delete() error {
 	return nil
 }
 
-func (e *Entity) Update(nameDb string) error {
-	return e.node.SetValues(newEntityValues(nameDb))
+func (e *Entity) Update(nameDb, namePlural string) error {
+	return e.node.SetValues(newEntityValues(nameDb, namePlural))
 }
 
-func NewEntity(service *Service, id uuid.UUID, nameDb string) (*Entity, error) {
-	node, err := service.node.CreateChild("entity", id, newEntityValues(nameDb))
+func NewEntity(service *Service, id uuid.UUID, nameDb, namePlural string) (*Entity, error) {
+	node, err := service.node.CreateChild("entity", id, newEntityValues(nameDb, namePlural))
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +80,10 @@ func newEntity(node *maker.Node, service *Service, attributes []*Attribute) *Ent
 	return entity
 }
 
-func newEntityValues(nameDb string) map[string]string {
+func newEntityValues(nameDb, namePlural string) map[string]string {
 	return map[string]string{
-		entityNameDb: nameDb,
-		"name":       nameDb,
+		"name":           nameDb,
+		entityNamePlural: namePlural,
+		entityNameDb:     nameDb,
 	}
 }
