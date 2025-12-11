@@ -8,8 +8,10 @@ import (
 )
 
 const (
+	attrName     = "name"
 	attrNameDb   = "name_db"
 	attrTypeDb   = "type_db"
+	attrTypeGo   = "type_go"
 	attrDefault  = "default"
 	attrFkTable  = "fk_table"
 	attrFkType   = "fk_type"
@@ -68,10 +70,10 @@ func newAttribute(node *maker.Node, entity *Entity) *Attribute {
 
 func newAttributeValues(nameDb, typeDb, def, fkTable, fkType string, nullable, pk bool) map[string]string {
 	return map[string]string{
-		"name":       nameDb,
+		attrName:     nameDb,
 		attrNameDb:   nameDb,
 		attrTypeDb:   typeDb,
-		"type_go":    typeconv.DbToGo(typeDb),
+		attrTypeGo:   typeconv.DbToGo(typeDb),
 		attrDefault:  def,
 		attrFkTable:  fkTable,
 		attrFkType:   fkType,

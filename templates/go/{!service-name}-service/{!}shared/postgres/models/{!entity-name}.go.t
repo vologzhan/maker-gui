@@ -12,12 +12,13 @@ type ▶EntityName◀ struct {
 ⏩	▶⬇AttributeName◀ ▶⬇Attribute➡Nullable↔*◀▶⬇Attribute➡TypeGo◀ `bun:"▶⬇Attribute➡NameDb◀▶⬇Attribute➡PrimaryKey↔,pk◀"` // maker:type_db=▶⬇Attribute➡TypeDb◀▶,default=▶⬇Attribute➡Default◀◀▶,fk=▶⬇Attribute➡FkTable◀|▶⬇Attribute➡FkType◀◀⏪
 
 	// maker:keep-model-relations
-⏩	▶⬇RelationName◀ ▶⬇Relation➡OneToMany↔[]◀*▶⬇Relation➡Entity◀ `bun:"rel:▶⬇Relation➡Type◀,join:▶⬇Relation➡ColumnName:Relation➡ColumnNameFk◀"⏪
 }
 
 func (m *▶EntityName◀) ToDto() dto.▶EntityName◀ {
 	return dto.▶EntityName◀{
 ⏩		m.▶AttributeName◀,⏪
+
+		// maker:keep-model-relations-to-dto
 	}
 }
 

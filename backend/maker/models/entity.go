@@ -6,6 +6,7 @@ import (
 	"github.com/vologzhan/maker-common/slices"
 )
 
+const entityName = "name"
 const entityNameDb = "name_db"
 const entityNamePlural = "name_plural"
 
@@ -16,6 +17,7 @@ type Entity struct {
 }
 
 func (e *Entity) Id() uuid.UUID      { return e.node.Id() }
+func (e *Entity) Name() string       { return e.node.ValueString(entityName) }
 func (e *Entity) NameDb() string     { return e.node.ValueString(entityNameDb) }
 func (e *Entity) NamePlural() string { return e.node.ValueString(entityNamePlural) }
 func (e *Entity) Service() *Service  { return e.service }
@@ -82,7 +84,7 @@ func newEntity(node *maker.Node, service *Service, attributes []*Attribute) *Ent
 
 func newEntityValues(nameDb, namePlural string) map[string]string {
 	return map[string]string{
-		"name":           nameDb,
+		entityName:       nameDb,
 		entityNamePlural: namePlural,
 		entityNameDb:     nameDb,
 	}

@@ -10,7 +10,6 @@ const serviceName = "name"
 type Service struct {
 	node     *maker.Node
 	root     *Root
-	sql      *Sql
 	entities []*Entity
 }
 
@@ -50,7 +49,6 @@ func newService(node *maker.Node, root *Root, entities []*Entity) *Service {
 	service := &Service{
 		node,
 		root,
-		nil,
 		entities,
 	}
 	root.services = append(root.services, service)
