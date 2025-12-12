@@ -2,25 +2,25 @@
 import {defineProps, ref, watch} from 'vue';
 import {v4 as uuid} from 'uuid';
 import pluralize from 'pluralize';
-import type {Service} from "../models/service.ts";
-import type {Entity} from "../models/entity.ts";
-import type {Attribute} from "../models/attribute.ts";
-import {CreateEntity, DeleteEntity, GetEntityList, UpdateEntity} from "../http/controller/entity.ts";
-import {CreateAttribute, DeleteAttribute, UpdateAttribute} from "../http/controller/attribute.ts";
-import type {EntityResponse} from "../http/response/entity.ts";
-import type {AttributeResponse} from "../http/response/attribute.ts";
+import type {ServiceDto} from "src/dto/service.ts";
+import type {EntityDto} from "src/dto/entity.ts";
+import type {AttributeDto} from "src/dto/attribute.ts";
+import {CreateEntity, DeleteEntity, GetEntityList, UpdateEntity} from "src/http/controller/entity.ts";
+import {CreateAttribute, DeleteAttribute, UpdateAttribute} from "src/http/controller/attribute.ts";
+import type {EntityResponse} from "src/http/response/entity.ts";
+import type {AttributeResponse} from "src/http/response/attribute.ts";
 
-const entities = ref<Entity[]>([])
+const entities = ref<EntityDto[]>([])
 
 const props = defineProps<{
-  service: Service
+  service: ServiceDto
 }>();
 
 watch(() => props.service.id, async (serviceId: string) => {
   entities.value = await getEntityList(serviceId)
 });
 
-async function saveEntity(entity: Entity) {
+async function saveEntity(entity: EntityDto) {
   if (entity.nameDb === "" || entity.namePlural === "") {
     return
   }
@@ -42,7 +42,7 @@ async function saveEntity(entity: Entity) {
   }
 }
 
-async function createEntity(entity: Entity) {
+async function createEntity(entity: EntityDto) {
   entity.id = uuid()
 
   await CreateEntity(props.service.id, {
@@ -56,14 +56,14 @@ async function createEntity(entity: Entity) {
   }
 }
 
-async function updateEntity(entity: Entity) {
+async function updateEntity(entity: EntityDto) {
   await UpdateEntity(entity.id, {
     name_db: entity.nameDb,
     name_plural: entity.namePlural,
   })
 }
 
-async function deleteEntity(entity: Entity) {
+async function deleteEntity(entity: EntityDto) {
   if (entity.id !== "") {
     await DeleteEntity(entity.id)
   }
@@ -87,10 +87,10 @@ async function deleteEntity(entity: Entity) {
 async function getEntityList(serviceId: string) {
   const res = await GetEntityList(serviceId)
 
-  const relations = new Map<string, Attribute[]>
+  const relations = new Map<string, AttributeDto[]>
 
   const entities = res.items.map((entityRes: EntityResponse) => {
-    const entity: Entity = {
+    const entity: EntityDto = {
       id: entityRes.id,
       nameDb: entityRes.name_db,
       namePlural: entityRes.name_plural,
@@ -98,7 +98,7 @@ async function getEntityList(serviceId: string) {
       attributes: [],
     }
 
-    entity.attributes = entityRes.attributes.map((attrRes: AttributeResponse): Attribute => {
+    entity.attributes = entityRes.attributes.map((attrRes: AttributeResponse): AttributeDto => {
       const attr = convertAttributeResponseToDto(entity, attrRes)
 
       if (attrRes.fk_table === "") {
@@ -128,8 +128,8 @@ async function getEntityList(serviceId: string) {
   return entities
 }
 
-function convertAttributeResponseToDto(entity: Entity, res: AttributeResponse) {
-  const attr: Attribute = {
+function convertAttributeResponseToDto(entity: EntityDto, res: AttributeResponse) {
+  const attr: AttributeDto = {
     entity: entity,
     id: res.id,
     nameDb: res.name_db,
@@ -160,7 +160,7 @@ function convertAttributeResponseToDto(entity: Entity, res: AttributeResponse) {
   return attr
 }
 
-async function saveAttribute(attr: Attribute) {
+async function saveAttribute(attr: AttributeDto) {
   if (attr.entity.id === "" || attr.nameDb === "" || attr.typeDb === "") {
     return
   }
@@ -192,7 +192,7 @@ async function saveAttribute(attr: Attribute) {
   }
 }
 
-async function createAttribute(attr: Attribute) {
+async function createAttribute(attr: AttributeDto) {
   attr.id = uuid()
 
   await CreateAttribute(attr.entity.id, {
@@ -207,7 +207,7 @@ async function createAttribute(attr: Attribute) {
   })
 }
 
-async function updateAttribute(attr: Attribute) {
+async function updateAttribute(attr: AttributeDto) {
   await UpdateAttribute(attr.id, {
         name_db: attr.nameDb,
         type_db: attr.typeDb,
@@ -220,7 +220,7 @@ async function updateAttribute(attr: Attribute) {
   )
 }
 
-async function deleteAttribute(attr: Attribute) {
+async function deleteAttribute(attr: AttributeDto) {
   if (attr.id !== "") {
     await DeleteAttribute(attr.id)
   }
@@ -229,7 +229,7 @@ async function deleteAttribute(attr: Attribute) {
 }
 
 function addEntity() {
-  const entity: Entity = {id: "", nameDb: "", namePlural: "", namePluralAuto: true, attributes: []}
+  const entity: EntityDto = {id: "", nameDb: "", namePlural: "", namePluralAuto: true, attributes: []}
   entities.value.push(entity)
 
   addAttribute(entity, {
@@ -241,7 +241,7 @@ function addEntity() {
   })
 }
 
-async function changeEntityName(entity: Entity) {
+async function changeEntityName(entity: EntityDto) {
   entity.nameDb = entity.nameDb.trim()
   if (entity.nameDb === "") {
     return
@@ -254,7 +254,7 @@ async function changeEntityName(entity: Entity) {
   return saveEntity(entity)
 }
 
-async function changeEntityNamePlural(entity: Entity) {
+async function changeEntityNamePlural(entity: EntityDto) {
   entity.namePlural = entity.namePlural.trim()
   if (entity.namePlural === "") {
     return
@@ -263,7 +263,7 @@ async function changeEntityNamePlural(entity: Entity) {
   return saveEntity(entity)
 }
 
-async function changeEntityNamePluralAuto(entity: Entity) {
+async function changeEntityNamePluralAuto(entity: EntityDto) {
   if (!entity.namePluralAuto) {
     return
   }
@@ -277,8 +277,8 @@ function calcNamePlural(name: string): string {
   return plural === name ? `${name}_list` : plural
 }
 
-async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
-  const defaults: Attribute = {
+async function addAttribute(entity: EntityDto, options?: Partial<AttributeDto>) {
+  const defaults: AttributeDto = {
     entity: entity,
     id: "",
     nameDb: "",
@@ -291,7 +291,7 @@ async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
     fk: null,
   }
 
-  const attr: Attribute = {
+  const attr: AttributeDto = {
     ...defaults,
     ...options,
   }
@@ -301,11 +301,11 @@ async function addAttribute(entity: Entity, options?: Partial<Attribute>) {
   return saveAttribute(attr)
 }
 
-function hasAttribute(entity: Entity, nameDb: string) {
+function hasAttribute(entity: EntityDto, nameDb: string) {
   return entity.attributes.some(attr => attr.nameDb === nameDb)
 }
 
-async function editType(attr: Attribute) {
+async function editType(attr: AttributeDto) {
   attr.length = 0
   if (!attr.nullable || attr.default !== "null") {
     attr.default = ""
@@ -335,7 +335,7 @@ async function editType(attr: Attribute) {
   return saveAttribute(attr)
 }
 
-async function editPrimaryKey(attr: Attribute) {
+async function editPrimaryKey(attr: AttributeDto) {
   if (attr.type === "one-to-one") {
     attr.nameDb = ""
     attr.typeDb = ""
@@ -355,19 +355,19 @@ async function editPrimaryKey(attr: Attribute) {
   await saveAttribute(attr)
 }
 
-function editLen(attr: Attribute) {
+function editLen(attr: AttributeDto) {
   attr.typeDb = calcTypeDbString(attr)
   saveAttribute(attr)
 }
 
-function calcTypeDbString(attr: Attribute) {
+function calcTypeDbString(attr: AttributeDto) {
   if (attr.length < 1) {
     return "text"
   }
   return `varchar(${attr.length})`
 }
 
-async function editNullable(attr: Attribute) {
+async function editNullable(attr: AttributeDto) {
   if (!attr.nullable && attr.default === "null") {
     attr.default = ""
   }
@@ -375,7 +375,7 @@ async function editNullable(attr: Attribute) {
   return saveAttribute(attr)
 }
 
-function setDefaultValueByType(attr: Attribute) {
+function setDefaultValueByType(attr: AttributeDto) {
   attr.default = (() => {
     if (attr.nullable) {
       return "null"
@@ -402,7 +402,7 @@ function setDefaultValueByType(attr: Attribute) {
   saveAttribute(attr)
 }
 
-function isForeignKey(attr: Attribute) {
+function isForeignKey(attr: AttributeDto) {
   return attr.type === "one-to-one" || attr.type === "many-to-one"
 }
 
@@ -413,7 +413,7 @@ function calcFkTypeByDbType(typeDb: string) {
   return "int"
 }
 
-function editForeignKey(attr: Attribute) {
+function editForeignKey(attr: AttributeDto) {
   if (attr.fk === null) {
     return
   }
