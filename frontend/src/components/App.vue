@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import {ref} from "vue";
-import ServiceList from "./ServiceList.vue";
-import Service from "./Service.vue";
+import Sidebar from "./Sidebar.vue";
+import Main from "./AppMain.vue";
 import type {ServiceDto} from "src/dto/service.ts";
 
 const service = ref<ServiceDto | undefined>()
 </script>
 
 <template>
-  <ServiceList v-model:service="service"/>
-  <Service :service="service"/>
+  <Sidebar v-model:service="service"/>
+  <Main :service="service"/>
 </template>
 
 <style scoped>
