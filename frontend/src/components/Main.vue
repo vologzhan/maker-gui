@@ -17,24 +17,27 @@ const selectedTab = shallowRef(tabs[0])
 </script>
 
 <template>
-  <header v-if="service">
-    <ul>
-      <li class="clickable"
-          v-for="tab in tabs"
-          :key="tab.name"
-          :class="{ selected: selectedTab === tab }"
-          @click="selectedTab = tab"
-      >
-        {{ tab.name }}
-      </li>
-    </ul>
-  </header>
-  <main>
-    <h1 v-if="!service">Select service</h1>
-    <template v-else>
-      <component :is="selectedTab?.component" :service="service"/>
-    </template>
+  <main v-if="!service">
+    <h1>Select service</h1>
   </main>
+
+  <template v-else>
+    <header>
+      <ul>
+        <li class="clickable"
+            v-for="tab in tabs"
+            :key="tab.name"
+            :class="{ selected: selectedTab === tab }"
+            @click="selectedTab = tab"
+        >
+          {{ tab.name }}
+        </li>
+      </ul>
+    </header>
+    <main>
+      <component :is="selectedTab?.component" :service="service"/>
+    </main>
+  </template>
 </template>
 
 <style scoped>
