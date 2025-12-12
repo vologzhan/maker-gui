@@ -1,7 +1,7 @@
-import type {Entity} from "./entity.ts";
+import type {EntityDto} from "./entity.ts";
 
-export interface Attribute {
-    entity: Entity
+export interface AttributeDto {
+    entity: EntityDto
     id: string
     nameDb: string
     typeDb: string
@@ -10,5 +10,5 @@ export interface Attribute {
     primaryKey: boolean
     type: string
     length: number
-    fk: Entity|null
+    fk: EntityDto|null
 }

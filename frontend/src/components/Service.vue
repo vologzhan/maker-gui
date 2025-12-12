@@ -1,70 +1,65 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue"
-import {v4 as uuid} from 'uuid'
-import {CreateService, GetServiceList} from "../http/controller/service.ts";
-import type {Service} from "../dto/service.ts";
-import type {ServiceResponse} from "../http/response/service.ts";
+import {shallowRef} from "vue";
+import type {ServiceDto} from "src/dto/service.ts";
+import Controller from "./controller/Controller.vue";
+import Database from "./database/Database.vue";
 
-const services = ref<Service[]>([])
-const newServiceName = ref("")
-
-const emit = defineEmits<{
-  (e: 'service-selected', service: Service): void
+defineProps<{
+  service?: ServiceDto,
 }>()
 
-onMounted(async () => {
-  services.value = await getServiceList()
-})
+const tabs = [
+  {name: 'Database', component: Database},
+  {name: 'Controllers', component: Controller},
+];
 
-async function getServiceList() {
-  const res = await GetServiceList()
-
-  return res.items.map((service: ServiceResponse): Service => {
-    return {id: service.id, name: service.name}
-  })
-}
-
-async function createService() {
-  const name = newServiceName.value.trim()
-  if (name === "") {
-    return
-  }
-
-  const service: Service = {id: uuid(), name: name}
-  await CreateService(service)
-  services.value.push(service)
-  newServiceName.value = ""
-}
+const selectedTab = shallowRef(tabs[0])
 </script>
 
 <template>
-  <aside>
-    <div
-        class="clickable"
-        v-for="service in services"
-        :key="service.id"
-        @click="emit('service-selected', service)"
-    >
-      {{ service.name }}
-    </div>
-
-    <div>
-      <input placeholder="service-name" v-model="newServiceName"/>
-      <button @click="createService()">
-        <i class="fa-solid fa-plus"></i> Service
-      </button>
-    </div>
-  </aside>
+  <header v-if="service">
+    <ul>
+      <li class="clickable" v-for="tab in tabs" :class="{ selected: selectedTab === tab }" @click="selectedTab = tab">
+        {{ tab.name }}
+      </li>
+    </ul>
+  </header>
+  <main>
+    <h1 v-if="!service">Select service</h1>
+    <template v-else>
+      <component :is="selectedTab?.component" :service="service"/>
+    </template>
+  </main>
 </template>
 
 <style scoped>
-aside {
-  float: left;
-  width: 15%;
+header {
+  grid-column: 2;
+  grid-row: 1;
   background-color: whitesmoke;
-  padding: 0.5rem;
-  height: 100vh;
-  position: sticky;
-  top: 0;
+
+  ul {
+    padding: 0.5rem;
+    margin: 0;
+    list-style-type: none;
+    display: flex;
+
+    li {
+      padding: 0.5rem;
+
+      &.selected {
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+main {
+  grid-column: 2;
+  grid-row: 2;
+
+  h1 {
+    margin: 0.5rem;
+  }
 }
 </style>
