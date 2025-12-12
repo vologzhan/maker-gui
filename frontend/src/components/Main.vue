@@ -4,7 +4,7 @@ import type {ServiceDto} from "src/dto/service.ts";
 import Controller from "./controller/Controller.vue";
 import Database from "./database/Database.vue";
 
-defineProps<{
+const {service} = defineProps<{
   service?: ServiceDto,
 }>()
 

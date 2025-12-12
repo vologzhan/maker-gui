@@ -4,9 +4,8 @@ import {v4 as uuid} from "uuid";
 import type {ServiceDto} from "src/dto/service.ts";
 import {CreateService} from "src/http/controller/service.ts";
 
-const emit = defineEmits<{
-  created: [service: ServiceDto];
-}>();
+const services = defineModel<ServiceDto[]>('services', {required: true});
+const service = defineModel<ServiceDto | undefined>('service');
 
 const newName = ref("")
 
@@ -16,10 +15,12 @@ async function create() {
     return
   }
 
-  const service: ServiceDto = {id: uuid(), name: name}
-  await CreateService(service)
+  const serv: ServiceDto = {id: uuid(), name: name}
+  await CreateService(serv)
 
-  emit('created', service)
+  services.value.push(serv)
+  service.value = serv
+
   newName.value = ""
 }
 </script>
