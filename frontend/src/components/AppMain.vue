@@ -19,10 +19,10 @@ const selectedTab = shallowRef(tabs[0])
 <template>
   <header v-if="service">
     <ul>
-      <li
+      <li class="clickable"
           v-for="tab in tabs"
           :key="tab.name"
-          :class="['clickable', { selected: selectedTab === tab }]"
+          :class="{ selected: selectedTab === tab }"
           @click="selectedTab = tab"
       >
         {{ tab.name }}
