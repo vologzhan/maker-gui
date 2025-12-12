@@ -4,8 +4,8 @@ import type {ServiceDto} from "src/dto/service.ts";
 import type {ServiceResponse} from "src/http/response/service.ts";
 import {GetServiceList} from "src/http/controller/service.ts";
 
-const services = defineModel<ServiceDto[]>('services', {default: []});
-const selectedService = defineModel<ServiceDto | undefined>('service');
+const services = defineModel<ServiceDto[]>('services');
+const service = defineModel<ServiceDto | undefined>('service');
 
 onMounted(async () => {
   services.value = await getList();
@@ -13,8 +13,8 @@ onMounted(async () => {
 
 async function getList() {
   const res = await GetServiceList();
-  return res.items.map((service: ServiceResponse): ServiceDto => {
-    return {id: service.id, name: service.name};
+  return res.items.map((serv: ServiceResponse): ServiceDto => {
+    return {id: serv.id, name: serv.name};
   });
 }
 </script>
@@ -22,12 +22,12 @@ async function getList() {
 <template>
   <ul>
     <li class="clickable"
-        v-for="service in services"
-        :key="service.id"
-        :class="{ selected: service.id === selectedService?.id }"
-        @click="selectedService = service"
+        v-for="serv in services"
+        :key="serv.id"
+        :class="{ selected: serv.id === service?.id }"
+        @click="service = serv"
     >
-      {{ service.name }}
+      {{ serv.name }}
     </li>
   </ul>
 </template>
