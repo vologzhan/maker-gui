@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import {shallowRef} from "vue";
 import type {ServiceDto} from "src/dto/service.ts";
-import Controller from "./controller/Controller.vue";
-import EntityList from "./entity/EntityList.vue";
+import Controller from "./Controller.vue";
+import Entity from "./Entity.vue";
 
 const {service} = defineProps<{
   service?: ServiceDto,
 }>()
 
 const tabs = [
-  {name: 'Database', component: EntityList},
+  {name: 'Database', component: Entity},
   {name: 'Controllers', component: Controller},
 ] as const
 
