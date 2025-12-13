@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {defineProps, ref, watch} from 'vue';
+import {defineProps, onMounted, ref, watch} from 'vue';
 import {v4 as uuid} from 'uuid';
 import pluralize from 'pluralize';
 import type {ServiceDto} from "src/dto/service.ts";
@@ -16,8 +16,12 @@ const props = defineProps<{
   service: ServiceDto
 }>();
 
-watch(() => props.service.id, async (serviceId: string) => {
-  entities.value = await getEntityList(serviceId)
+watch(() => props.service, async (service: ServiceDto) => {
+  entities.value = await getEntityList(service.id)
+});
+
+onMounted(async () => {
+  entities.value = await getEntityList(props.service.id);
 });
 
 async function saveEntity(entity: EntityDto) {
@@ -432,8 +436,6 @@ function editForeignKey(attr: AttributeDto) {
 
 <template>
   <main>
-    <h2>{{ props.service.id ? `Service: ${props.service.name}` : "Select service" }}</h2>
-
     <div class="entity-container" v-for="entity in entities" :key="entity.id">
       <button @click="deleteEntity(entity)">
         <i class="fa-solid fa-ban"></i>
