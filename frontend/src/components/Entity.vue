@@ -435,143 +435,127 @@ function editForeignKey(attr: AttributeDto) {
 </script>
 
 <template>
-  <main>
-    <div class="entity-container" v-for="entity in entities" :key="entity.id">
-      <button @click="deleteEntity(entity)">
+  <div class="entity-item" v-for="entity in entities" :key="entity.id">
+    <button @click="deleteEntity(entity)">
+      <i class="fa-solid fa-ban"></i>
+    </button>
+
+    <label>
+      table
+      <input type="text" placeholder="<table_name>" v-model="entity.nameDb" @change="changeEntityName(entity)"/>
+    </label>
+
+    <label :class="{ 'disabled': entity.namePluralAuto }">
+      plural
+      <input type="checkbox" title="auto"
+             v-model="entity.namePluralAuto"
+             @change="changeEntityNamePluralAuto(entity)"
+      />
+      <input type="text" placeholder="<plural_name>"
+             v-model="entity.namePlural"
+             :disabled="entity.namePluralAuto"
+             @change="changeEntityNamePlural(entity)"
+      />
+    </label>
+
+    <div class="attribute-container" v-for="attr in entity.attributes" :key="attr.id">
+      <input type="checkbox" hidden v-model="attr.primaryKey"/>
+
+      <button :disabled="attr.primaryKey" @click="deleteAttribute(attr)">
         <i class="fa-solid fa-ban"></i>
       </button>
 
-      <label> table
-        <input type="text" class="sticky" placeholder="<table_name>"
-               v-model="entity.nameDb"
-               @change="changeEntityName(entity)"
-        />
+      <input type="text" placeholder="column_name"
+             v-model="attr.nameDb"
+             :disabled="attr.primaryKey && !isForeignKey(attr)"
+             @change="saveAttribute(attr)"
+      />
+
+      <select v-model="attr.type" @change="editType(attr)">
+        <option disabled value="">Type</option>
+        <option v-show="!attr.primaryKey">string</option>
+        <option v-show="!attr.primaryKey">int</option>
+        <option v-show="!attr.primaryKey">bool</option>
+        <option v-show="!attr.primaryKey">json</option>
+        <option v-show="!attr.primaryKey">datetime</option>
+        <option value="serial" v-show="attr.primaryKey">PK serial</option>
+        <option value="uuid">{{ attr.primaryKey ? "PK uuid" : "uuid" }}</option>
+        <option value="one-to-one">{{ attr.primaryKey ? "PK one-to-one" : "one-to-one" }}</option>
+        <option v-show="!attr.primaryKey">many-to-one</option>
+      </select>
+
+      <label class="disabled">
+        db
+        <input type="text" :disabled="true" :value="attr.typeDb"/>
       </label>
 
-      <label :class="{ 'disabled': entity.namePluralAuto }"> plural
-        <input type="checkbox" class="sticky" title="auto"
-               v-model="entity.namePluralAuto"
-               @change="changeEntityNamePluralAuto(entity)"
-        />
-        <input type="text" class="sticky" placeholder="<plural_name>"
-               v-model="entity.namePlural"
-               :disabled="entity.namePluralAuto"
-               @change="changeEntityNamePlural(entity)"
-        />
+      <label :class="{ 'disabled': attr.primaryKey }">
+        null
+        <input type="checkbox" v-model="attr.nullable" :disabled="attr.primaryKey" @change="editNullable(attr)"/>
       </label>
 
-      <div class="attribute-container" v-for="attr in entity.attributes" :key="attr.id">
-        <input type="checkbox" hidden v-model="attr.primaryKey"/>
+      <label :class="{ 'disabled': attr.primaryKey }">
+        default
+        <input type="text" placeholder="<none>" v-model="attr.default" :disabled="attr.primaryKey" @change="saveAttribute(attr)"/>
+      </label>
 
-        <button :disabled="attr.primaryKey" @click="deleteAttribute(attr)">
-          <i class="fa-solid fa-ban"></i>
-        </button>
+      <button :disabled="attr.primaryKey" @click="setDefaultValueByType(attr)">
+        Default by type
+      </button>
 
-        <input type="text" placeholder="column_name"
-               v-model="attr.nameDb"
-               :disabled="attr.primaryKey && !isForeignKey(attr)"
-               @change="saveAttribute(attr)"
-        />
+      <label v-show="attr.type === 'string'">
+        len
+        <input type="number" placeholder="<text>" v-model="attr.length" @change="editLen(attr)"/>
+        < 1 for text
+      </label>
 
-        <select v-model="attr.type" @change="editType(attr)">
-          <option disabled value="">Type</option>
-          <option v-show="!attr.primaryKey">string</option>
-          <option v-show="!attr.primaryKey">int</option>
-          <option v-show="!attr.primaryKey">bool</option>
-          <option v-show="!attr.primaryKey">json</option>
-          <option v-show="!attr.primaryKey">datetime</option>
-          <option value="serial" v-show="attr.primaryKey">PK serial</option>
-          <option value="uuid">{{ attr.primaryKey ? "PK uuid" : "uuid" }}</option>
-          <option value="one-to-one">{{ attr.primaryKey ? "PK one-to-one" : "one-to-one" }}</option>
-          <option v-show="!attr.primaryKey">many-to-one</option>
+      <label v-show="isForeignKey(attr)">
+        FK table
+        <select v-model="attr.fk" @change="editForeignKey(attr)">
+          <option disabled value="">FK table</option>
+          <option v-for="fkEntity in entities" :value="fkEntity">{{ fkEntity.nameDb }}</option>
         </select>
-
-        <label class="disabled"> db
-          <input class="sticky" type="text" :disabled="true" :value="attr.typeDb"/>
-        </label>
-
-        <label :class="{ 'disabled': attr.primaryKey }"> null
-          <input type="checkbox" class="sticky"
-                 v-model="attr.nullable"
-                 :disabled="attr.primaryKey"
-                 @change="editNullable(attr)"
-          />
-        </label>
-
-        <label :class="{ 'disabled': attr.primaryKey }"> default
-          <input type="text" placeholder="<none>" class="sticky"
-                 v-model="attr.default"
-                 :disabled="attr.primaryKey"
-                 @change="saveAttribute(attr)"
-          />
-        </label>
-        <button class="sticky" :disabled="attr.primaryKey" @click="setDefaultValueByType(attr)">
-          Default by type
-        </button>
-
-        <label v-show="attr.type === 'string'"> len
-          <input type="number" placeholder="<text>" class="sticky" v-model="attr.length" @change="editLen(attr)"/>
-          < 1 for text
-        </label>
-
-        <label v-show="isForeignKey(attr)"> FK table:
-          <select class="sticky" v-model="attr.fk" @change="editForeignKey(attr)">
-            <option disabled value="">FK table</option>
-            <option v-for="fkEntity in entities" :value="fkEntity">{{ fkEntity.nameDb }}</option>
-          </select>
-        </label>
-      </div>
-
-      <div>
-        <button class="sticky" @click="addAttribute(entity)">
-          <i class="fa-solid fa-plus"></i> Column
-        </button>
-        <button
-            v-show="!hasAttribute(entity, 'created_at')"
-            @click="addAttribute(entity, {nameDb: 'created_at', typeDb: 'timestamp(0)', default: 'now()', type: 'datetime'})"
-        >
-          <i class="fa-solid fa-plus"></i> created_at
-        </button>
-        <button
-            v-show="!hasAttribute(entity, 'updated_at')"
-            @click="addAttribute(entity, {nameDb: 'updated_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
-        >
-          <i class="fa-solid fa-plus"></i> updated_at
-        </button>
-        <button
-            v-show="!hasAttribute(entity, 'deleted_at')"
-            @click="addAttribute(entity, {nameDb: 'deleted_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
-        >
-          <i class="fa-solid fa-plus"></i> deleted_at
-        </button>
-      </div>
+      </label>
     </div>
 
-    <button v-show="props.service.id" @click="addEntity()">
-      <i class="fa-solid fa-plus"></i> Table
+    <button @click="addAttribute(entity)">
+      <i class="fa-solid fa-plus"></i> Column
     </button>
-  </main>
+
+    <button
+        v-show="!hasAttribute(entity, 'created_at')"
+        @click="addAttribute(entity, {nameDb: 'created_at', typeDb: 'timestamp(0)', default: 'now()', type: 'datetime'})"
+    >
+      <i class="fa-solid fa-plus"></i> created_at
+    </button>
+
+    <button
+        v-show="!hasAttribute(entity, 'updated_at')"
+        @click="addAttribute(entity, {nameDb: 'updated_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
+    >
+      <i class="fa-solid fa-plus"></i> updated_at
+    </button>
+
+    <button
+        v-show="!hasAttribute(entity, 'deleted_at')"
+        @click="addAttribute(entity, {nameDb: 'deleted_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
+    >
+      <i class="fa-solid fa-plus"></i> deleted_at
+    </button>
+  </div>
+
+  <button v-show="props.service.id" @click="addEntity()">
+    <i class="fa-solid fa-plus"></i> Table
+  </button>
 </template>
 
 <style scoped>
-main {
-  margin: 1rem;
-  width: 100%;
-  padding-right: 3rem;
-}
-
-.entity-container {
-  padding: 0.5rem;
-  margin-right: 2rem;
-  margin-bottom: 2rem;
+.entity-item {
+  margin-bottom: 1rem;
+  padding: 0.3rem;
   background-color: whitesmoke;
-  width: 100%;
 
-  input, label, select, button {
-    margin-left: 0.5rem;
-  }
-
-  .sticky {
+  input {
     margin-left: 0;
   }
 }
