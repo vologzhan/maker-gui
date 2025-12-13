@@ -2,7 +2,7 @@
 import {shallowRef} from "vue";
 import type {ServiceDto} from "src/dto/service.ts";
 import Controller from "./controller/Controller.vue";
-import Database from "./database/Database.vue";
+import Database from "./entity/EntityList.vue";
 
 const {service} = defineProps<{
   service?: ServiceDto,
@@ -11,9 +11,9 @@ const {service} = defineProps<{
 const tabs = [
   {name: 'Database', component: Database},
   {name: 'Controllers', component: Controller},
-];
+] as const
 
-const selectedTab = shallowRef(tabs[0])
+const tab = shallowRef<(typeof tabs)[number]>(tabs[0])
 </script>
 
 <template>
@@ -25,17 +25,17 @@ const selectedTab = shallowRef(tabs[0])
     <header>
       <ul>
         <li class="clickable"
-            v-for="tab in tabs"
-            :key="tab.name"
-            :class="{ selected: selectedTab === tab }"
-            @click="selectedTab = tab"
+            v-for="t in tabs"
+            :key="t.name"
+            :class="{ selected: tab === t }"
+            @click="tab = t"
         >
-          {{ tab.name }}
+          {{ t.name }}
         </li>
       </ul>
     </header>
     <main>
-      <component :is="selectedTab?.component" :service="service"/>
+      <component :is="tab.component" :service="service"/>
     </main>
   </template>
 </template>

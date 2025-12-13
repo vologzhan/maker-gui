@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type {ServiceDto} from "src/dto/service.ts";
 
-defineProps<{
-  service?: ServiceDto,
+const {service} = defineProps<{
+  service: ServiceDto,
 }>()
 </script>
 
