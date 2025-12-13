@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import {ref} from "vue";
-import ServiceList from "./service/ServiceList.vue";
-import ServiceCreate from "./service/ServiceCreate.vue";
+import Service from "./Service.vue";
 import type {ServiceDto} from "src/dto/service.ts";
 
-const services = ref<ServiceDto[]>([])
 const service = defineModel<ServiceDto | undefined>('service')
 </script>
 
 <template>
   <aside>
-    <ServiceList v-model:services="services" v-model:service="service"/>
-    <ServiceCreate v-model:services="services" v-model:service="service"/>
+    <Service v-model:service="service"/>
   </aside>
 </template>
 
