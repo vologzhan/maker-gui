@@ -3,7 +3,7 @@ import {defineProps} from 'vue';
 import type {EntityDto} from "src/dto/entity.ts";
 import type {AttributeDto} from "src/dto/attribute.ts";
 import {DeleteAttribute} from "src/http/controller/attribute.ts";
-import {addAttribute, calcFkTypeByDbType, saveAttribute} from "./attribute.ts";
+import {calcFkTypeByDbType, saveAttribute} from "./attribute.ts";
 
 const props = defineProps<{
   entities: EntityDto[]
@@ -138,6 +138,30 @@ function changeForeignKey(attr: AttributeDto) {
 
   saveAttribute(attr, props.entities)
 }
+
+async function addAttribute(options?: Partial<AttributeDto>) {
+  const defaults: AttributeDto = {
+    entity: props.entity,
+    id: "",
+    nameDb: "",
+    typeDb: "",
+    default: "",
+    nullable: false,
+    primaryKey: false,
+    type: "",
+    length: 0,
+    fk: null,
+  }
+
+  const attr: AttributeDto = {
+    ...defaults,
+    ...options,
+  }
+
+  props.entity.attributes.push(attr)
+
+  return saveAttribute(attr, props.entities)
+}
 </script>
 
 <template>
@@ -202,27 +226,27 @@ function changeForeignKey(attr: AttributeDto) {
     </label>
   </div>
 
-  <button @click="addAttribute(entity, entities)">
+  <button @click="addAttribute()">
     <i class="fa-solid fa-plus"></i> Column
   </button>
 
   <button
       v-show="!hasAttribute(entity, 'created_at')"
-      @click="addAttribute(entity, entities, {nameDb: 'created_at', typeDb: 'timestamp(0)', default: 'now()', type: 'datetime'})"
+      @click="addAttribute({nameDb: 'created_at', typeDb: 'timestamp(0)', default: 'now()', type: 'datetime'})"
   >
     <i class="fa-solid fa-plus"></i> created_at
   </button>
 
   <button
       v-show="!hasAttribute(entity, 'updated_at')"
-      @click="addAttribute(entity, entities, {nameDb: 'updated_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
+      @click="addAttribute({nameDb: 'updated_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
   >
     <i class="fa-solid fa-plus"></i> updated_at
   </button>
 
   <button
       v-show="!hasAttribute(entity, 'deleted_at')"
-      @click="addAttribute(entity, entities, {nameDb: 'deleted_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
+      @click="addAttribute({nameDb: 'deleted_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
   >
     <i class="fa-solid fa-plus"></i> deleted_at
   </button>

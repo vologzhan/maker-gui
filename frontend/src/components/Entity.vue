@@ -9,7 +9,7 @@ import {CreateEntity, DeleteEntity, GetEntityList, UpdateEntity} from "src/http/
 import type {EntityResponse} from "src/http/response/entity.ts";
 import type {AttributeResponse} from "src/http/response/attribute.ts";
 import Attribute from "./Attribute.vue";
-import {addAttribute, saveAttribute} from "./attribute.ts";
+import {saveAttribute} from "./attribute.ts";
 
 const entities = ref<EntityDto[]>([])
 
@@ -169,12 +169,17 @@ function add() {
   const entity: EntityDto = {id: "", nameDb: "", namePlural: "", namePluralAuto: true, attributes: []}
   entities.value.push(entity)
 
-  addAttribute(entity, entities.value, {
+  entity.attributes.push({
+    entity: entity,
+    id: "",
     nameDb: "id",
     typeDb: "serial",
     default: "",
+    nullable: false,
     primaryKey: true,
     type: "serial",
+    length: 0,
+    fk: null,
   })
 }
 

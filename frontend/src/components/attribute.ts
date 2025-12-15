@@ -63,30 +63,6 @@ async function updateAttribute(attr: AttributeDto) {
     )
 }
 
-export async function addAttribute(entity: EntityDto, entities: EntityDto[], options?: Partial<AttributeDto>) {
-    const defaults: AttributeDto = {
-        entity: entity,
-        id: "",
-        nameDb: "",
-        typeDb: "",
-        default: "",
-        nullable: false,
-        primaryKey: false,
-        type: "",
-        length: 0,
-        fk: null,
-    }
-
-    const attr: AttributeDto = {
-        ...defaults,
-        ...options,
-    }
-
-    entity.attributes.push(attr)
-
-    return saveAttribute(attr, entities)
-}
-
 export function calcFkTypeByDbType(typeDb: string) {
     if (typeDb === "uuid") {
         return "uuid"
