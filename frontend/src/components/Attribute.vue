@@ -22,7 +22,7 @@ function hasAttribute(entity: EntityDto, nameDb: string) {
   return entity.attributes.some(attr => attr.nameDb === nameDb)
 }
 
-async function editType(attr: AttributeDto) {
+async function changeType(attr: AttributeDto) {
   attr.length = 0
   if (!attr.nullable || attr.default !== "null") {
     attr.default = ""
@@ -33,7 +33,7 @@ async function editType(attr: AttributeDto) {
   }
 
   if (attr.primaryKey) {
-    return await editPrimaryKey(attr)
+    return await changePrimaryKey(attr)
   }
 
   if (isForeignKey(attr)) {
@@ -52,7 +52,7 @@ async function editType(attr: AttributeDto) {
   return saveAttribute(attr, props.entities)
 }
 
-async function editPrimaryKey(attr: AttributeDto) {
+async function changePrimaryKey(attr: AttributeDto) {
   if (attr.type === "one-to-one") {
     attr.nameDb = ""
     attr.typeDb = ""
@@ -72,7 +72,7 @@ async function editPrimaryKey(attr: AttributeDto) {
   await saveAttribute(attr, props.entities)
 }
 
-function editLen(attr: AttributeDto) {
+function changeLen(attr: AttributeDto) {
   attr.typeDb = calcTypeDbString(attr)
   saveAttribute(attr, props.entities)
 }
@@ -84,7 +84,7 @@ function calcTypeDbString(attr: AttributeDto) {
   return `varchar(${attr.length})`
 }
 
-async function editNullable(attr: AttributeDto) {
+async function changeNullable(attr: AttributeDto) {
   if (!attr.nullable && attr.default === "null") {
     attr.default = ""
   }
@@ -123,7 +123,7 @@ function isForeignKey(attr: AttributeDto) {
   return attr.type === "one-to-one" || attr.type === "many-to-one"
 }
 
-function editForeignKey(attr: AttributeDto) {
+function changeForeignKey(attr: AttributeDto) {
   if (attr.fk === null) {
     return
   }
@@ -154,7 +154,7 @@ function editForeignKey(attr: AttributeDto) {
            @change="saveAttribute(attr, entities)"
     />
 
-    <select v-model="attr.type" @change="editType(attr)">
+    <select v-model="attr.type" @change="changeType(attr)">
       <option disabled value="">Type</option>
       <option v-show="!attr.primaryKey">string</option>
       <option v-show="!attr.primaryKey">int</option>
@@ -174,7 +174,7 @@ function editForeignKey(attr: AttributeDto) {
 
     <label :class="{ 'disabled': attr.primaryKey }">
       null
-      <input type="checkbox" v-model="attr.nullable" :disabled="attr.primaryKey" @change="editNullable(attr)"/>
+      <input type="checkbox" v-model="attr.nullable" :disabled="attr.primaryKey" @change="changeNullable(attr)"/>
     </label>
 
     <label :class="{ 'disabled': attr.primaryKey }">
@@ -189,13 +189,13 @@ function editForeignKey(attr: AttributeDto) {
 
     <label v-show="attr.type === 'string'">
       len
-      <input type="number" placeholder="<text>" v-model="attr.length" @change="editLen(attr)"/>
+      <input type="number" placeholder="<text>" v-model="attr.length" @change="changeLen(attr)"/>
       < 1 for text
     </label>
 
     <label v-show="isForeignKey(attr)">
       FK table
-      <select v-model="attr.fk" @change="editForeignKey(attr)">
+      <select v-model="attr.fk" @change="changeForeignKey(attr)">
         <option disabled value="">FK table</option>
         <option v-for="fkEntity in entities" :value="fkEntity">{{ fkEntity.nameDb }}</option>
       </select>
