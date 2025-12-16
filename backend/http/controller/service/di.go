@@ -1,9 +1,10 @@
 package service
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/vologzhan/maker-gui/backend/maker/repository"
-	"net/http"
 )
 
 func New(server *echo.Echo, rep *repository.Repository) {

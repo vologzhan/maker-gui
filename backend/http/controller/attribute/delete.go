@@ -1,11 +1,12 @@
 package attribute
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/vologzhan/maker-gui/backend/http/request"
 	"github.com/vologzhan/maker-gui/backend/http/response"
 	"github.com/vologzhan/maker-gui/backend/maker/repository"
-	"net/http"
 )
 
 type Delete struct {
