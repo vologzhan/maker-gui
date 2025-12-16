@@ -22,3 +22,7 @@ body {
 .disabled {
   color: gray;
 }
+
+.selected {
+  font-weight: bold;
+}

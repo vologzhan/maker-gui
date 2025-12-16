@@ -5,9 +5,9 @@ import type {AttributeDto} from "src/dto/attribute.ts";
 import {DeleteAttribute} from "src/http/controller/attribute.ts";
 import {calcFkTypeByDbType, saveAttribute} from "./attribute.ts";
 
-const props = defineProps<{
-  entities: EntityDto[]
+const {entity, entities} = defineProps<{
   entity: EntityDto
+  entities: EntityDto[]
 }>();
 
 async function deleteAttribute(attr: AttributeDto) {
@@ -18,7 +18,7 @@ async function deleteAttribute(attr: AttributeDto) {
   attr.entity.attributes.splice(attr.entity.attributes.indexOf(attr), 1)
 }
 
-function hasAttribute(entity: EntityDto, nameDb: string) {
+function hasAttribute(nameDb: string) {
   return entity.attributes.some(attr => attr.nameDb === nameDb)
 }
 
@@ -49,7 +49,7 @@ async function changeType(attr: AttributeDto) {
     attr.typeDb = attr.type
   }
 
-  return saveAttribute(attr, props.entities)
+  return saveAttribute(attr, entities)
 }
 
 async function changePrimaryKey(attr: AttributeDto) {
@@ -69,12 +69,12 @@ async function changePrimaryKey(attr: AttributeDto) {
     attr.default = "uuid_generate_v4()"
   }
 
-  await saveAttribute(attr, props.entities)
+  await saveAttribute(attr, entities)
 }
 
 function changeLen(attr: AttributeDto) {
   attr.typeDb = calcTypeDbString(attr)
-  saveAttribute(attr, props.entities)
+  saveAttribute(attr, entities)
 }
 
 function calcTypeDbString(attr: AttributeDto) {
@@ -89,7 +89,7 @@ async function changeNullable(attr: AttributeDto) {
     attr.default = ""
   }
 
-  return saveAttribute(attr, props.entities)
+  return saveAttribute(attr, entities)
 }
 
 function setDefaultValueByType(attr: AttributeDto) {
@@ -116,7 +116,7 @@ function setDefaultValueByType(attr: AttributeDto) {
     }
   })()
 
-  saveAttribute(attr, props.entities)
+  saveAttribute(attr, entities)
 }
 
 function isForeignKey(attr: AttributeDto) {
@@ -136,12 +136,12 @@ function changeForeignKey(attr: AttributeDto) {
     attr.typeDb = calcFkTypeByDbType(fkAttr.typeDb)
   }
 
-  saveAttribute(attr, props.entities)
+  saveAttribute(attr, entities)
 }
 
 async function addAttribute(options?: Partial<AttributeDto>) {
   const defaults: AttributeDto = {
-    entity: props.entity,
+    entity: entity,
     id: "",
     nameDb: "",
     typeDb: "",
@@ -158,9 +158,9 @@ async function addAttribute(options?: Partial<AttributeDto>) {
     ...options,
   }
 
-  props.entity.attributes.push(attr)
+  entity.attributes.push(attr)
 
-  return saveAttribute(attr, props.entities)
+  return saveAttribute(attr, entities)
 }
 </script>
 
@@ -231,21 +231,21 @@ async function addAttribute(options?: Partial<AttributeDto>) {
   </button>
 
   <button
-      v-show="!hasAttribute(entity, 'created_at')"
+      v-show="!hasAttribute('created_at')"
       @click="addAttribute({nameDb: 'created_at', typeDb: 'timestamp(0)', default: 'now()', type: 'datetime'})"
   >
     <i class="fa-solid fa-plus"></i> created_at
   </button>
 
   <button
-      v-show="!hasAttribute(entity, 'updated_at')"
+      v-show="!hasAttribute('updated_at')"
       @click="addAttribute({nameDb: 'updated_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
   >
     <i class="fa-solid fa-plus"></i> updated_at
   </button>
 
   <button
-      v-show="!hasAttribute(entity, 'deleted_at')"
+      v-show="!hasAttribute('deleted_at')"
       @click="addAttribute({nameDb: 'deleted_at', typeDb: 'timestamp(0)', default: 'null', nullable: true, type: 'datetime'})"
   >
     <i class="fa-solid fa-plus"></i> deleted_at

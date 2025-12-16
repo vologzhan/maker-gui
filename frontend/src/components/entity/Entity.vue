@@ -8,21 +8,21 @@ import type {AttributeDto} from "src/dto/attribute.ts";
 import {CreateEntity, DeleteEntity, GetEntityList, UpdateEntity} from "src/http/controller/entity.ts";
 import type {EntityResponse} from "src/http/response/entity.ts";
 import type {AttributeResponse} from "src/http/response/attribute.ts";
-import Attribute from "./Attribute.vue";
 import {saveAttribute} from "./attribute.ts";
+import Attribute from "src/components/entity/Attribute.vue";
 
 const entities = ref<EntityDto[]>([])
 
-const props = defineProps<{
+const {service} = defineProps<{
   service: ServiceDto
 }>();
 
-watch(() => props.service, async (service: ServiceDto) => {
+watch(() => service, async (service: ServiceDto) => {
   entities.value = await getList(service.id)
 });
 
 onMounted(async () => {
-  entities.value = await getList(props.service.id);
+  entities.value = await getList(service.id);
 });
 
 async function save(entity: EntityDto) {
@@ -50,7 +50,7 @@ async function save(entity: EntityDto) {
 async function create(entity: EntityDto) {
   entity.id = uuid()
 
-  await CreateEntity(props.service.id, {
+  await CreateEntity(service.id, {
     id: entity.id,
     name_db: entity.nameDb,
     name_plural: entity.namePlural,
@@ -221,35 +221,37 @@ function calcNamePlural(name: string): string {
 </script>
 
 <template>
-  <div class="entity-item" v-for="entity in entities" :key="entity.id">
-    <button @click="deleteEntity(entity)">
-      <i class="fa-solid fa-ban"></i>
+  <main>
+    <div class="entity-item" v-for="entity in entities" :key="entity.id">
+      <button @click="deleteEntity(entity)">
+        <i class="fa-solid fa-ban"></i>
+      </button>
+
+      <label>
+        table
+        <input type="text" placeholder="<table_name>" v-model="entity.nameDb" @change="changeName(entity)"/>
+      </label>
+
+      <label :class="{ 'disabled': entity.namePluralAuto }">
+        plural
+        <input type="checkbox" title="auto"
+               v-model="entity.namePluralAuto"
+               @change="changeNamePluralAuto(entity)"
+        />
+        <input type="text" placeholder="<plural_name>"
+               v-model="entity.namePlural"
+               :disabled="entity.namePluralAuto"
+               @change="changeNamePlural(entity)"
+        />
+      </label>
+
+      <Attribute :entity="entity" :entities="entities"/>
+    </div>
+
+    <button v-show="service.id" @click="add()">
+      <i class="fa-solid fa-plus"></i> Table
     </button>
-
-    <label>
-      table
-      <input type="text" placeholder="<table_name>" v-model="entity.nameDb" @change="changeName(entity)"/>
-    </label>
-
-    <label :class="{ 'disabled': entity.namePluralAuto }">
-      plural
-      <input type="checkbox" title="auto"
-             v-model="entity.namePluralAuto"
-             @change="changeNamePluralAuto(entity)"
-      />
-      <input type="text" placeholder="<plural_name>"
-             v-model="entity.namePlural"
-             :disabled="entity.namePluralAuto"
-             @change="changeNamePlural(entity)"
-      />
-    </label>
-
-    <Attribute :entities="entities" :entity="entity"/>
-  </div>
-
-  <button v-show="props.service.id" @click="add()">
-    <i class="fa-solid fa-plus"></i> Table
-  </button>
+  </main>
 </template>
 
 <style scoped>
@@ -261,5 +263,11 @@ function calcNamePlural(name: string): string {
 
 input {
   margin-left: 0;
+}
+
+main {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 1rem;
 }
 </style>

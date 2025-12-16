@@ -61,8 +61,4 @@ ul {
   margin: 0;
   list-style-type: none;
 }
-
-.selected {
-  font-weight: bold;
-}
 </style>

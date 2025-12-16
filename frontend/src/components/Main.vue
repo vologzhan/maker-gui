@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {shallowRef} from "vue";
 import type {ServiceDto} from "src/dto/service.ts";
-import Controller from "./Controller.vue";
-import Entity from "./Entity.vue";
+import Controller from "./controller/Controller.vue";
+import Entity from "./entity/Entity.vue";
 
 const {service} = defineProps<{
   service?: ServiceDto,
@@ -13,30 +13,26 @@ const tabs = [
   {name: 'Controllers', component: Controller},
 ] as const
 
-const tab = shallowRef<(typeof tabs)[number]>(tabs[0])
+const selectedTab = shallowRef<(typeof tabs)[number]>(tabs[0])
 </script>
 
 <template>
-  <main v-if="!service">
-    <h1>Select service</h1>
-  </main>
+  <header>
+    <h1 v-if="!service">Select service</h1>
+    <ul v-else>
+      <li class="clickable"
+          v-for="tab in tabs"
+          :key="tab.name"
+          :class="{ selected: selectedTab === tab }"
+          @click="selectedTab = tab"
+      >
+        {{ tab.name }}
+      </li>
+    </ul>
+  </header>
 
-  <template v-else>
-    <header>
-      <ul>
-        <li class="clickable"
-            v-for="t in tabs"
-            :key="t.name"
-            :class="{ selected: tab === t }"
-            @click="tab = t"
-        >
-          {{ t.name }}
-        </li>
-      </ul>
-    </header>
-    <main>
-      <component :is="tab.component" :service="service"/>
-    </main>
+  <template v-if="service">
+    <component :is="selectedTab.component" :service="service"/>
   </template>
 </template>
 
@@ -46,6 +42,10 @@ header {
   grid-row: 1;
   background-color: whitesmoke;
 
+  h1 {
+    margin: 0.5rem;
+  }
+
   ul {
     padding: 0.5rem;
     margin: 0;
@@ -54,21 +54,7 @@ header {
 
     li {
       padding: 0.5rem;
-
-      &.selected {
-        font-weight: bold;
-      }
     }
-  }
-}
-
-main {
-  grid-column: 2;
-  grid-row: 2;
-  padding: 1rem;
-
-  h1 {
-    margin: 0.5rem;
   }
 }
 </style>

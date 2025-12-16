@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Service from "./Service.vue";
+import Service from "./service/Service.vue";
 import type {ServiceDto} from "src/dto/service.ts";
 
 const service = defineModel<ServiceDto | undefined>('service')
